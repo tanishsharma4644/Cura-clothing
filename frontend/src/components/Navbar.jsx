@@ -11,6 +11,7 @@ const Navbar = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { cartCount } = useCart();
   const { user, logout } = useAuth();
   const { wishlistCount } = useWishlist();
@@ -79,7 +80,10 @@ const Navbar = () => {
             
             {/* Logo & Mobile Menu */}
             <div className="flex items-center gap-4 w-1/4">
-              <button className="p-2 hover:bg-black/5 rounded-full transition-colors lg:hidden">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 hover:bg-black/5 rounded-full transition-colors lg:hidden"
+              >
                 <Menu className="w-5 h-5" />
               </button>
               <Link to="/" className="text-3xl font-black tracking-tighter uppercase">
@@ -222,6 +226,86 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 bg-black/50 z-[200] lg:hidden"
+            />
+            <motion.div 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+              className="fixed inset-y-0 left-0 w-3/4 max-w-sm bg-white dark:bg-[#0F172A] z-[210] shadow-2xl flex flex-col lg:hidden"
+            >
+              <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-tighter uppercase dark:text-white">
+                  CURA<span className="text-gray-400">.</span>
+                </Link>
+                <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 dark:text-gray-400 text-2xl">&times;</button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); if (searchQuery) { navigate(`/shop?search=${searchQuery}`); setIsMobileMenuOpen(false); } }}
+                  className="flex items-center border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 bg-gray-50 dark:bg-[#1E293B]"
+                >
+                  <Search className="w-5 h-5 text-gray-500 mr-2" />
+                  <input 
+                    type="text" 
+                    placeholder="Search..." 
+                    value={searchQuery}
+                    className="bg-transparent border-none outline-none text-sm w-full dark:text-white"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </form>
+
+                <div className="flex flex-col gap-4 mt-4">
+                  <h4 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Categories</h4>
+                  {categories.map((item) => (
+                    <Link 
+                      key={item} 
+                      to={`/shop?category=${item}`} 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-lg font-bold uppercase dark:text-white hover:text-[#8B5E3C] transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  ))}
+                  <Link 
+                    to="/try-on" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-lg font-bold uppercase text-gray-500 hover:text-black dark:hover:text-white transition-colors"
+                  >
+                    AI Try-On
+                  </Link>
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                <button onClick={toggleTheme} className="flex items-center gap-2 text-sm font-bold uppercase dark:text-white">
+                  {isDark ? <><Sun className="w-5 h-5 text-gray-300" /> Light Mode</> : <><Moon className="w-5 h-5 text-gray-700" /> Dark Mode</>}
+                </button>
+                <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="relative p-2">
+                  <Heart className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute top-0 right-0 bg-black text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full border border-white dark:border-[#0F172A]">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };

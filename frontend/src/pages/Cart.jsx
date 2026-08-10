@@ -97,7 +97,12 @@ const Cart = () => {
                     </button>
                     
                     <Link to={`/product/${item.product._id}`} className="w-32 h-40 bg-gray-100 overflow-hidden flex-shrink-0">
-                      <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                      <img 
+                        src={item.product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }}
+                        alt={item.product.name} 
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                      />
                     </Link>
                     
                     <div className="flex flex-col flex-grow py-1">

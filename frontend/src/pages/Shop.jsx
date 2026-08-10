@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSearchParams, Link } from 'react-router-dom';
+import Loader from '../components/Loader';
 
 const Shop = () => {
   const [searchParams] = useSearchParams();
@@ -50,7 +51,7 @@ const Shop = () => {
   }, [categoryQuery, searchQuery, pageQuery]);
 
   if (loading) {
-    return <div className="min-h-screen pt-32 text-center font-mono">LOADING...</div>;
+    return <Loader text="Loading Collection" />;
   }
 
   return (
@@ -92,7 +93,8 @@ const Shop = () => {
               <Link to={`/product/${product._id}`} key={product._id} className="group cursor-pointer">
                 <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-800 overflow-hidden mb-4 relative">
                   <img 
-                    src={product.imageUrl} 
+                    src={product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }}
                     alt={product.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out dark:brightness-90"
                   />

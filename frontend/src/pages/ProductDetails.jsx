@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import { Heart } from 'lucide-react';
+import Loader from '../components/Loader';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -68,7 +69,7 @@ const ProductDetails = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center pt-20"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-black"></div></div>;
+    return <Loader text="Loading Details" />;
   }
 
   if (!product) {
@@ -87,8 +88,8 @@ const ProductDetails = () => {
             initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}
             className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 relative group"
           >
-            <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
-            <img src={product.imageUrl.replace('80', '81')} alt={product.name} className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-105" />
+            <img src={product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt={product.name} className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500" />
+            <img src={(product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80').replace('80', '81')} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt={product.name} className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-105" />
           </motion.div>
 
           <motion.div 

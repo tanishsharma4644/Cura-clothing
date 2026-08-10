@@ -214,7 +214,12 @@ const CheckoutForm = () => {
                 {cartItems.map((item, index) => (
                   <div key={index} className="flex gap-4">
                     <div className="w-20 h-24 bg-gray-100 dark:bg-[#0F172A] flex-shrink-0 relative">
-                      <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover dark:brightness-90" />
+                      <img 
+                        src={item.product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }}
+                        alt={item.product.name} 
+                        className="w-full h-full object-cover dark:brightness-90" 
+                      />
                       <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">{item.quantity}</span>
                     </div>
                     <div className="flex flex-col flex-grow">

@@ -81,8 +81,8 @@ const ProductCarousel = ({ title, subtitle, products, loading, handleQuickAdd, l
               >
                 <Link to={`/product/${product._id}`} className="group block h-full">
                   <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-[#E8E6E1] dark:bg-[#1E293B] rounded-2xl shadow-sm group-hover:shadow-xl transition-all duration-500">
-                    <img src={product.imageUrl} alt={product.name} className="product-img absolute inset-0 w-full h-full object-cover dark:brightness-90 origin-center" />
-                    <img src={product.imageUrl.replace('80', '81')} alt="Alternate" className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-105 dark:brightness-90" />
+                    <img src={product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt={product.name} className="product-img absolute inset-0 w-full h-full object-cover dark:brightness-90 origin-center" />
+                    <img src={(product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80').replace('80', '81')} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt="Alternate" className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-105 dark:brightness-90" />
                     
                     <div className="absolute inset-0 bg-[#FAF9F6]/50 dark:bg-[#0F172A]/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
                       <button 
@@ -208,16 +208,16 @@ const Home = () => {
     <div className="bg-[#FAF9F6] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC] min-h-screen overflow-hidden transition-colors duration-500">
       
       {/* 1. HERO SECTION */}
-      <section className="hero-section relative h-[90vh] flex flex-col md:flex-row border-b border-[#E8E6E1] dark:border-[#1E293B]">
+      <section className="hero-section relative min-h-[90vh] flex flex-col md:flex-row border-b border-[#E8E6E1] dark:border-[#1E293B]">
         
         {/* Left Side */}
-        <div className="w-full md:w-1/2 h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 bg-[#FAF9F6] dark:bg-[#0F172A] z-10 transition-colors duration-500">
+        <div className="w-full md:w-1/2 flex flex-col justify-center px-6 sm:px-10 md:px-16 lg:px-24 py-16 md:py-0 bg-[#FAF9F6] dark:bg-[#0F172A] z-10 transition-colors duration-500">
           <div className="relative">
             <div className="text-[#8B5E3C] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase mb-4 opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
               Collection 01 — Autumn 26
             </div>
             
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif text-[#1C1917] dark:text-[#FFFFFF] leading-[1] mb-8 transition-colors">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif text-[#1C1917] dark:text-[#FFFFFF] leading-[1] mb-6 md:mb-8 transition-colors">
               {headlineLines.map((line, idx) => (
                 <span key={idx} className="block overflow-hidden pb-1">
                   <span className="hero-text-line block">{line}</span>
@@ -225,7 +225,7 @@ const Home = () => {
               ))}
             </h1>
             
-            <p className="text-[#57534E] dark:text-[#94A3B8] text-lg max-w-md mb-12 font-light leading-relaxed transition-colors opacity-0 animate-[fadeIn_1s_ease-out_1.2s_forwards]">
+            <p className="text-[#57534E] dark:text-[#94A3B8] text-base md:text-lg max-w-md mb-10 md:mb-12 font-light leading-relaxed transition-colors opacity-0 animate-[fadeIn_1s_ease-out_1.2s_forwards]">
               Meticulously crafted garments that transcend seasons. We source the finest organic materials to create silhouettes that define modern elegance.
             </p>
             
@@ -244,7 +244,7 @@ const Home = () => {
         </div>
 
         {/* Right Side */}
-        <div className="w-full md:w-1/2 h-[50vh] md:h-full relative overflow-hidden bg-[#EAE7DF] dark:bg-[#1E293B]">
+        <div className="w-full md:w-1/2 h-[50vw] sm:h-[60vw] md:h-full min-h-[300px] md:min-h-0 relative overflow-hidden bg-[#EAE7DF] dark:bg-[#1E293B]">
           <img 
             src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80" alt="Editorial Campaign" 
             className="hero-image absolute inset-0 w-full h-full object-cover object-top dark:brightness-90 scale-[1.15] origin-top"

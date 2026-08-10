@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Loader from '../components/Loader';
 
 const Profile = () => {
   const [orders, setOrders] = useState([]);
@@ -31,13 +32,7 @@ const Profile = () => {
   }, [user, navigate]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-32 pb-20 px-4 flex items-center justify-center bg-[#FAF9F6] dark:bg-[#0F172A]">
-        <div className="text-center">
-          <p className="text-sm text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
+    return <Loader text="Loading Profile" />;
   }
 
   return (

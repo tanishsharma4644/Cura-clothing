@@ -13,8 +13,11 @@ import {
   Settings,
   LogOut,
   FolderTree,
-  Tag
+  Tag,
+  Menu,
+  X
 } from 'lucide-react';
+import Loader from '../components/Loader';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
@@ -28,6 +31,7 @@ const AdminDashboard = () => {
   
   // Navigation State
   const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -178,7 +182,7 @@ const AdminDashboard = () => {
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
       const { data } = await axios.post('https://cura-clothing.onrender.com/api/upload', formDataUpload, config);
-      setFormData({ ...formData, imageUrl: `https://cura-clothing.onrender.com${data.imageUrl}` });
+      setFormData({ ...formData, imageUrl: data.imageUrl }); // Cloudinary returns a full URL
     } catch (error) {
       console.error(error);
       alert('Error uploading image');
@@ -353,7 +357,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen pt-32 pb-20 px-4 flex items-center justify-center text-white font-mono bg-[#0F172A]">LOADING WORKSPACE...</div>;
+  if (loading) return <Loader text="Loading Workspace" />;
   if (!user || !user.isAdmin) return null;
 
   // --- RENDER HELPERS ---
@@ -422,11 +426,11 @@ const AdminDashboard = () => {
 
   const renderProducts = () => (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-serif dark:text-white">Inventory Management</h2>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h2 className="text-2xl sm:text-3xl font-serif dark:text-white">Inventory Management</h2>
         <button 
           onClick={() => openModal()}
-          className="bg-black dark:bg-[#3B82F6] text-white px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] rounded-md hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors shadow-lg"
+          className="bg-black dark:bg-[#3B82F6] text-white px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] rounded-md hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors shadow-lg w-full sm:w-auto"
         >
           + Add Product
         </button>
@@ -770,60 +774,69 @@ const AdminDashboard = () => {
     </div>
   );
 
+  const navItems = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={18} /> },
+    { id: 'products', label: 'Inventory', icon: <ShoppingBag size={18} /> },
+    { id: 'orders', label: 'Orders', icon: <PackageOpen size={18} /> },
+    { id: 'customers', label: 'Customers', icon: <Users size={18} /> },
+    { id: 'offers', label: 'Offers & Discounts', icon: <Tag size={18} /> },
+    { id: 'marketing', label: 'Marketing & Store', icon: <Megaphone size={18} /> },
+  ];
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSidebarOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#020617] flex transition-colors duration-500">
       
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="w-64 fixed h-full bg-white dark:bg-[#0F172A] border-r border-gray-200 dark:border-gray-800 shadow-sm z-50 flex flex-col">
-        <div className="p-8 border-b border-gray-100 dark:border-gray-800">
-          <h1 className="text-2xl font-serif font-black tracking-tighter dark:text-white cursor-pointer" onClick={() => navigate('/')}>
-            OUR<br/>CLOTHING<span className="text-[#8B5E3C] dark:text-[#3B82F6]">.</span>
-          </h1>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Admin Workspace</p>
+      <aside className={`w-64 fixed h-full bg-white dark:bg-[#0F172A] border-r border-gray-200 dark:border-gray-800 shadow-sm z-50 flex flex-col transition-transform duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-serif font-black tracking-tighter dark:text-white cursor-pointer" onClick={() => navigate('/')}>
+              CURA<span className="text-[#8B5E3C] dark:text-[#3B82F6]">.</span>
+            </h1>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Admin Workspace</p>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <button 
-            onClick={() => setActiveTab('overview')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <LayoutDashboard size={18} /> Overview
-          </button>
-          <button 
-            onClick={() => setActiveTab('products')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'products' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <ShoppingBag size={18} /> Inventory
-          </button>
-          <button 
-            onClick={() => setActiveTab('orders')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'orders' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <PackageOpen size={18} /> Orders
-          </button>
-          <button 
-            onClick={() => setActiveTab('customers')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'customers' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <Users size={18} /> Customers
-          </button>
-          <button 
-            onClick={() => setActiveTab('offers')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'offers' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <Tag size={18} /> Offers & Discounts
-          </button>
-          <button 
-            onClick={() => setActiveTab('marketing')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${activeTab === 'marketing' ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'}`}
-          >
-            <Megaphone size={18} /> Marketing & Store
-          </button>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map(item => (
+            <button 
+              key={item.id}
+              onClick={() => handleTabChange(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${
+                activeTab === item.id 
+                  ? 'bg-black text-white dark:bg-white dark:text-black shadow-md' 
+                  : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-400'
+              }`}
+            >
+              {item.icon} {item.label}
+            </button>
+          ))}
         </nav>
 
         <div className="p-4 border-t border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3 px-4 py-3 text-sm text-gray-500 dark:text-gray-400 font-bold">
-            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-black dark:text-white">
+            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-black dark:text-white flex-shrink-0">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 truncate">
@@ -834,8 +847,19 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="ml-64 flex-1 p-8 lg:p-12 h-screen overflow-y-auto">
+      <main className="w-full lg:ml-64 flex-1 p-4 sm:p-6 lg:p-8 xl:p-12 min-h-screen overflow-y-auto">
         
+        {/* Mobile Top Bar */}
+        <div className="flex items-center gap-4 mb-6 lg:hidden">
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-800 shadow-sm"
+          >
+            <Menu size={20} className="dark:text-white" />
+          </button>
+          <h2 className="text-lg font-bold dark:text-white capitalize">{activeTab}</h2>
+        </div>
+
         {/* Conditionally Render Content Based on Active Tab */}
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'products' && renderProducts()}
