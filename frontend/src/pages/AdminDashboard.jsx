@@ -75,12 +75,12 @@ const AdminDashboard = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const [usersRes, ordersRes, productsRes, settingsRes, offersRes, collectionsRes] = await Promise.all([
-          axios.get('http://localhost:5001/api/users', config),
-          axios.get('http://localhost:5001/api/orders', config),
-          axios.get('http://localhost:5001/api/products'),
-          axios.get('http://localhost:5001/api/settings'),
-          axios.get('http://localhost:5001/api/offers'),
-          axios.get('http://localhost:5001/api/collections/admin', config)
+          axios.get('https://cura-clothing.onrender.com/api/users', config),
+          axios.get('https://cura-clothing.onrender.com/api/orders', config),
+          axios.get('https://cura-clothing.onrender.com/api/products'),
+          axios.get('https://cura-clothing.onrender.com/api/settings'),
+          axios.get('https://cura-clothing.onrender.com/api/offers'),
+          axios.get('https://cura-clothing.onrender.com/api/collections/admin', config)
         ]);
         setUsers(usersRes.data);
         setOrders(ordersRes.data);
@@ -177,8 +177,8 @@ const AdminDashboard = () => {
 
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-      const { data } = await axios.post('http://localhost:5001/api/upload', formDataUpload, config);
-      setFormData({ ...formData, imageUrl: `http://localhost:5001${data.imageUrl}` });
+      const { data } = await axios.post('https://cura-clothing.onrender.com/api/upload', formDataUpload, config);
+      setFormData({ ...formData, imageUrl: `https://cura-clothing.onrender.com${data.imageUrl}` });
     } catch (error) {
       console.error(error);
       alert('Error uploading image');
@@ -198,12 +198,12 @@ const AdminDashboard = () => {
       };
 
       if (editingProduct) {
-        await axios.put(`http://localhost:5001/api/products/${editingProduct._id}`, dataToSave, config);
+        await axios.put(`https://cura-clothing.onrender.com/api/products/${editingProduct._id}`, dataToSave, config);
       } else {
-        await axios.post('http://localhost:5001/api/products', dataToSave, config);
+        await axios.post('https://cura-clothing.onrender.com/api/products', dataToSave, config);
       }
       
-      const { data } = await axios.get('http://localhost:5001/api/products');
+      const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
       setProducts(data.products || data);
       setShowModal(false);
     } catch (e) {
@@ -215,9 +215,9 @@ const AdminDashboard = () => {
   const handleDeliver = async (orderId) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`http://localhost:5001/api/orders/${orderId}/deliver`, {}, config);
+      await axios.put(`https://cura-clothing.onrender.com/api/orders/${orderId}/deliver`, {}, config);
       
-      const { data } = await axios.get('http://localhost:5001/api/orders', config);
+      const { data } = await axios.get('https://cura-clothing.onrender.com/api/orders', config);
       setOrders(data);
       if (selectedOrder && selectedOrder._id === orderId) {
          setSelectedOrder(data.find(o => o._id === orderId));
@@ -232,10 +232,10 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this order?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`http://localhost:5001/api/orders/${orderId}`, config);
+        await axios.delete(`https://cura-clothing.onrender.com/api/orders/${orderId}`, config);
         
         // Refresh the orders list
-        const { data } = await axios.get('http://localhost:5001/api/orders', config);
+        const { data } = await axios.get('https://cura-clothing.onrender.com/api/orders', config);
         setOrders(data);
       } catch (e) {
         console.error(e);
@@ -247,12 +247,12 @@ const AdminDashboard = () => {
   const handleToggleNewArrival = async (product) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`http://localhost:5001/api/products/${product._id}`, {
+      await axios.put(`https://cura-clothing.onrender.com/api/products/${product._id}`, {
         ...product,
         isNewArrival: !product.isNewArrival
       }, config);
       
-      const { data } = await axios.get('http://localhost:5001/api/products');
+      const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
       setProducts(data.products || data);
     } catch (e) {
       console.error(e);
@@ -263,7 +263,7 @@ const AdminDashboard = () => {
   const handlePublishSettings = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put('http://localhost:5001/api/settings', {
+      await axios.put('https://cura-clothing.onrender.com/api/settings', {
         marqueeText,
         marqueeActive
       }, config);
@@ -282,7 +282,7 @@ const AdminDashboard = () => {
     setSendingBroadcast(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.post('http://localhost:5001/api/settings/broadcast', {
+      const { data } = await axios.post('https://cura-clothing.onrender.com/api/settings/broadcast', {
         subject: broadcastSubject,
         message: broadcastMessage
       }, config);
@@ -303,11 +303,11 @@ const AdminDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       if (editingOffer) {
-        await axios.put(`http://localhost:5001/api/offers/${editingOffer._id}`, offerFormData, config);
+        await axios.put(`https://cura-clothing.onrender.com/api/offers/${editingOffer._id}`, offerFormData, config);
       } else {
-        await axios.post('http://localhost:5001/api/offers', offerFormData, config);
+        await axios.post('https://cura-clothing.onrender.com/api/offers', offerFormData, config);
       }
-      const { data } = await axios.get('http://localhost:5001/api/offers');
+      const { data } = await axios.get('https://cura-clothing.onrender.com/api/offers');
       setOffers(data);
       setShowOfferModal(false);
     } catch (e) {
@@ -320,11 +320,11 @@ const AdminDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       if (editingCollection) {
-        await axios.put(`http://localhost:5001/api/collections/${editingCollection._id}`, collectionFormData, config);
+        await axios.put(`https://cura-clothing.onrender.com/api/collections/${editingCollection._id}`, collectionFormData, config);
       } else {
-        await axios.post('http://localhost:5001/api/collections', collectionFormData, config);
+        await axios.post('https://cura-clothing.onrender.com/api/collections', collectionFormData, config);
       }
-      const { data } = await axios.get('http://localhost:5001/api/collections/admin', config);
+      const { data } = await axios.get('https://cura-clothing.onrender.com/api/collections/admin', config);
       setCollections(data);
       setShowCollectionModal(false);
     } catch (e) {
@@ -336,8 +336,8 @@ const AdminDashboard = () => {
     if(window.confirm('Promote this user to Admin?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.put(`http://localhost:5001/api/users/${userId}/promote`, {}, config);
-        const { data } = await axios.get('http://localhost:5001/api/users', config);
+        await axios.put(`https://cura-clothing.onrender.com/api/users/${userId}/promote`, {}, config);
+        const { data } = await axios.get('https://cura-clothing.onrender.com/api/users', config);
         setUsers(data);
       } catch (e) { console.error(e); alert('Error promoting user'); }
     }
@@ -347,7 +347,7 @@ const AdminDashboard = () => {
     if(window.confirm('Ban and remove this user? This cannot be undone.')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`http://localhost:5001/api/users/${userId}/ban`, config);
+        await axios.delete(`https://cura-clothing.onrender.com/api/users/${userId}/ban`, config);
         setUsers(users.filter(u => u._id !== userId));
       } catch (e) { console.error(e); alert(e.response?.data?.message || 'Error banning user'); }
     }
@@ -471,8 +471,8 @@ const AdminDashboard = () => {
                         if(window.confirm('Delete this product?')) {
                           try {
                             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                            await axios.delete(`http://localhost:5001/api/products/${p._id}`, config);
-                            const { data } = await axios.get('http://localhost:5001/api/products');
+                            await axios.delete(`https://cura-clothing.onrender.com/api/products/${p._id}`, config);
+                            const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
                             setProducts(data.products || data);
                           } catch(e) { console.error(e); }
                         }
@@ -689,7 +689,7 @@ const AdminDashboard = () => {
                       if(window.confirm('Delete this collection?')) {
                         try {
                           const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                          await axios.delete(`http://localhost:5001/api/collections/${col._id}`, config);
+                          await axios.delete(`https://cura-clothing.onrender.com/api/collections/${col._id}`, config);
                           setCollections(collections.filter(c => c._id !== col._id));
                         } catch(e) { console.error(e); }
                       }
@@ -751,7 +751,7 @@ const AdminDashboard = () => {
                         if(window.confirm('Delete this offer?')) {
                           try {
                             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                            await axios.delete(`http://localhost:5001/api/offers/${o._id}`, config);
+                            await axios.delete(`https://cura-clothing.onrender.com/api/offers/${o._id}`, config);
                             setOffers(offers.filter(off => off._id !== o._id));
                           } catch(e) { console.error(e); }
                         }

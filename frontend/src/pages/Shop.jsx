@@ -20,8 +20,8 @@ const Shop = () => {
         setLoading(true);
         // We now pass pageNumber and keyword directly to backend
         const endpoint = searchQuery 
-          ? `http://localhost:5001/api/products?keyword=${searchQuery}&pageNumber=${pageQuery}`
-          : `http://localhost:5001/api/products?pageNumber=${pageQuery}`;
+          ? `https://cura-clothing.onrender.com/api/products?keyword=${searchQuery}&pageNumber=${pageQuery}`
+          : `https://cura-clothing.onrender.com/api/products?pageNumber=${pageQuery}`;
           
         const { data } = await axios.get(endpoint);
         

@@ -60,7 +60,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5001/api/users/login', { email, password });
+      const { data } = await axios.post('https://cura-clothing.onrender.com/api/users/login', { email, password });
       login(data);
       navigate('/profile');
     } catch (err) {

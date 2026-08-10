@@ -56,7 +56,7 @@ const CheckoutForm = () => {
 
       // 1. Create Payment Intent
       const { data: { clientSecret } } = await axios.post(
-        'http://localhost:5001/api/stripe/create-payment-intent', 
+        'https://cura-clothing.onrender.com/api/stripe/create-payment-intent', 
         { amount: finalTotal }, 
         config
       );
@@ -97,7 +97,7 @@ const CheckoutForm = () => {
           paidAt: new Date()
         };
 
-        await axios.post('http://localhost:5001/api/orders', orderData, config);
+        await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
         
         setIsProcessing(false);
         setIsSuccess(true);

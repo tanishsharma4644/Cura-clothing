@@ -46,7 +46,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { data } = await axios.post('http://localhost:5001/api/users/register', { name, email, password });
+      const { data } = await axios.post('https://cura-clothing.onrender.com/api/users/register', { name, email, password });
       login(data);
       navigate('/profile');
     } catch (err) {

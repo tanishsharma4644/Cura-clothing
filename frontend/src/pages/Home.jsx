@@ -120,8 +120,8 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const [productsRes, collectionsRes] = await Promise.all([
-          axios.get('http://localhost:5001/api/products'),
-          axios.get('http://localhost:5001/api/collections')
+          axios.get('https://cura-clothing.onrender.com/api/products'),
+          axios.get('https://cura-clothing.onrender.com/api/collections')
         ]);
         setProducts(productsRes.data.products || productsRes.data);
         setCollections(collectionsRes.data);

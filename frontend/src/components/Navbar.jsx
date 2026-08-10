@@ -25,7 +25,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5001/api/settings');
+        const { data } = await axios.get('https://cura-clothing.onrender.com/api/settings');
         if (data) {
           setMarquee({ text: data.marqueeText, active: data.marqueeActive });
         }

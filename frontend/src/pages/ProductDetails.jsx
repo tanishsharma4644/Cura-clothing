@@ -28,12 +28,12 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:5001/api/products/${id}`);
+        const { data } = await axios.get(`https://cura-clothing.onrender.com/api/products/${id}`);
         setProduct(data);
         if(data.sizes?.length) setSelectedSize(data.sizes[0]);
         if(data.colors?.length) setSelectedColor(data.colors[0]);
 
-        const offersRes = await axios.get('http://localhost:5001/api/offers');
+        const offersRes = await axios.get('https://cura-clothing.onrender.com/api/offers');
         setOffers(offersRes.data.filter(o => o.isActive));
 
         setLoading(false);
@@ -55,12 +55,12 @@ const ProductDetails = () => {
     try {
       setReviewError('');
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.post(`http://localhost:5001/api/products/${id}/reviews`, { rating, comment }, config);
+      await axios.post(`https://cura-clothing.onrender.com/api/products/${id}/reviews`, { rating, comment }, config);
       alert('Review submitted successfully');
       setRating(0);
       setComment('');
       // refetch product to show new review
-      const { data } = await axios.get(`http://localhost:5001/api/products/${id}`);
+      const { data } = await axios.get(`https://cura-clothing.onrender.com/api/products/${id}`);
       setProduct(data);
     } catch (error) {
       setReviewError(error.response?.data?.message || 'Error submitting review');

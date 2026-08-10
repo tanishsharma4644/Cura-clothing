@@ -18,7 +18,7 @@ const Cart = () => {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5001/api/offers');
+        const { data } = await axios.get('https://cura-clothing.onrender.com/api/offers');
         const autoOffers = data.filter(o => o.type === 'automatic' && o.isActive);
         const promos = data.filter(o => o.type === 'promocode' && o.isActive);
         setAvailablePromoCodes(promos);
@@ -49,7 +49,7 @@ const Cart = () => {
     if (!code) return;
     setPromoError('');
     try {
-      const { data } = await axios.post('http://localhost:5001/api/offers/apply', { code: code.toUpperCase() });
+      const { data } = await axios.post('https://cura-clothing.onrender.com/api/offers/apply', { code: code.toUpperCase() });
       setAppliedPromo(data);
       if (typeof codeToApply !== 'string') setPromoCode('');
     } catch (error) {
