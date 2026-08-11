@@ -1,15 +1,115 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { ShoppingBag, ArrowRight } from 'lucide-react';
+import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { ShoppingBag, ArrowRight, Sparkles, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshDistortMaterial } from '@react-three/drei';
+import { HeroScene, EnhancedFabricScene, ParticleAtmosphere, Tilt3DCard } from '../components/Scene3D';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// --- Animated Counter ---
+const AnimatedCounter = ({ target, suffix = '' }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      setCount(Math.floor(progress * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [isInView, target]);
+  return <span ref={ref}>{count}{suffix}</span>;
+};
+
+// --- Marquee Ticker ---
+const MarqueeTicker = () => {
+  const items = ['NEW AUTUMN COLLECTION', 'FREE SHIPPING OVER $150', 'AI VIRTUAL TRY-ON', 'SUSTAINABLE FASHION', 'HANDCRAFTED QUALITY'];
+  return (
+    <div className="overflow-hidden bg-[#1C1917] dark:bg-[#3B82F6] py-4 select-none">
+      <div className="flex animate-marquee whitespace-nowrap">
+        {[...items, ...items, ...items].map((item, i) => (
+          <span key={i} className="text-white/90 text-xs font-bold tracking-[0.3em] uppercase mx-12 flex items-center gap-3">
+            <span className="w-1.5 h-1.5 bg-white/40 rounded-full" />{item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- Hero Slideshow (Ken Burns Effect) ---
+const HeroSlideshow = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const slides = [
+    { id: 1, src: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=1200&q=80', label: 'The Autumn Edit' },
+    { id: 2, src: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1200&q=80', label: 'Minimalist Form' },
+    { id: 3, src: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80', label: 'Silk Collection' },
+    { id: 4, src: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1200&q=80', label: 'Winter Layers' }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % slides.length);
+    }, 5000); // 5 seconds per slide
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  return (
+    <div className="absolute inset-0 w-full h-full bg-[#EAE7DF] dark:bg-[#0B1120]">
+      {slides.map((slide, index) => (
+        <div 
+          key={slide.id}
+          className={`absolute inset-0 w-full h-full transition-opacity duration-[2000ms] ease-in-out ${
+            index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+          }`}
+        >
+          <img 
+            src={slide.src} 
+            alt={slide.label} 
+            className={`w-full h-full object-cover dark:brightness-75 transition-transform duration-[10000ms] ease-linear origin-center ${
+              index === currentIndex ? 'scale-110' : 'scale-100'
+            }`}
+          />
+          {/* Subtle gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+        </div>
+      ))}
+      
+      {/* Slideshow Controls */}
+      <div className="absolute bottom-8 left-8 right-8 z-20 flex justify-between items-end">
+        <div className="flex flex-col gap-3">
+           <span className="text-white text-xs sm:text-sm font-bold tracking-[0.3em] uppercase drop-shadow-md">
+             {slides[currentIndex].label}
+           </span>
+           <div className="flex gap-2">
+             {slides.map((_, idx) => (
+               <button 
+                 key={idx}
+                 onClick={() => setCurrentIndex(idx)}
+                 className={`h-[2px] transition-all duration-500 rounded-full ${
+                   idx === currentIndex ? 'w-10 bg-white' : 'w-4 bg-white/40 hover:bg-white/80'
+                 }`}
+                 aria-label={`Go to slide ${idx + 1}`}
+               />
+             ))}
+           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // --- 3D Fabric Component ---
 const FabricMesh = () => {
@@ -71,7 +171,7 @@ const ProductCarousel = ({ title, subtitle, products, loading, handleQuickAdd, l
                 key={product._id} 
                 className="product-card-gsap w-[300px] md:w-[400px] opacity-0"
                 onMouseEnter={(e) => {
-                  gsap.to(e.currentTarget.querySelector('.product-img'), { scale: 1.04, duration: 0.4, ease: 'power2.out' });
+                  gsap.to(e.currentTarget.querySelector('.product-img'), { scale: 1.06, duration: 0.6, ease: 'power2.out' });
                   gsap.to(e.currentTarget.querySelector('.product-title'), { y: -4, duration: 0.4, ease: 'power2.out' });
                 }}
                 onMouseLeave={(e) => {
@@ -79,19 +179,22 @@ const ProductCarousel = ({ title, subtitle, products, loading, handleQuickAdd, l
                   gsap.to(e.currentTarget.querySelector('.product-title'), { y: 0, duration: 0.4, ease: 'power2.out' });
                 }}
               >
+                <Tilt3DCard className="h-full">
                 <Link to={`/product/${product._id}`} className="group block h-full">
-                  <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-[#E8E6E1] dark:bg-[#1E293B] rounded-2xl shadow-sm group-hover:shadow-xl transition-all duration-500">
+                  <div className="relative aspect-[3/4] overflow-hidden mb-6 bg-[#E8E6E1] dark:bg-[#1E293B] rounded-2xl shadow-sm group-hover:shadow-2xl transition-all duration-500">
                     <img src={product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt={product.name} className="product-img absolute inset-0 w-full h-full object-cover dark:brightness-90 origin-center" />
-                    <img src={(product.imageUrl || 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80').replace('80', '81')} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&q=80'; }} alt="Alternate" className="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-105 dark:brightness-90" />
                     
-                    <div className="absolute inset-0 bg-[#FAF9F6]/50 dark:bg-[#0F172A]/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-8">
                       <button 
                         onClick={(e) => handleQuickAdd(e, product)}
-                        className="bg-[#1C1917] dark:bg-[#3B82F6] text-white px-8 py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors flex items-center gap-2 translate-y-4 group-hover:translate-y-0 duration-500 rounded-full shadow-lg"
+                        className="bg-white/90 dark:bg-[#3B82F6] backdrop-blur-md text-[#1C1917] dark:text-white px-8 py-4 text-xs font-bold tracking-[0.2em] uppercase hover:bg-[#1C1917] hover:text-white dark:hover:bg-[#2563EB] transition-all flex items-center gap-2 translate-y-8 group-hover:translate-y-0 duration-500 rounded-full shadow-xl"
                       >
                         <ShoppingBag className="w-4 h-4" /> Add to Bag
                       </button>
                     </div>
+                    
+                    {/* Shine effect on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
                   </div>
                   <div className="flex justify-between items-start px-2">
                     <div>
@@ -101,6 +204,7 @@ const ProductCarousel = ({ title, subtitle, products, loading, handleQuickAdd, l
                     <span className="font-serif text-lg text-[#1C1917] dark:text-white">${product.price}</span>
                   </div>
                 </Link>
+                </Tilt3DCard>
               </div>
             ))
           )}
@@ -143,17 +247,8 @@ const Home = () => {
       { y: '0%', duration: 1.2, stagger: 0.15, ease: 'power3.out', delay: 0.2 }
     );
 
-    // 2. Hero Parallax
-    gsap.to('.hero-image', {
-      yPercent: 15,
-      ease: "none",
-      scrollTrigger: {
-        trigger: '.hero-section',
-        start: "top top",
-        end: "bottom top",
-        scrub: 0.8
-      }
-    });
+    // 2. Hero Parallax (removed - hero is now 3D scene)
+
 
     // 3. Section Scroll Triggers (Product Grids)
     gsap.utils.toArray('.product-grid-section').forEach((section) => {
@@ -243,14 +338,14 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Right Side */}
-        <div className="w-full md:w-1/2 h-[50vw] sm:h-[60vw] md:h-auto min-h-[300px] relative overflow-hidden bg-[#EAE7DF] dark:bg-[#1E293B]">
-          <img 
-            src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80" alt="Editorial Campaign" 
-            className="hero-image absolute inset-0 w-full h-full object-cover object-top dark:brightness-90 scale-[1.15] origin-top"
-          />
+        {/* Right Side - Cinematic Slideshow */}
+        <div className="w-full md:w-1/2 min-h-[60vh] md:min-h-full relative overflow-hidden transition-colors duration-500">
+          <HeroSlideshow />
         </div>
       </section>
+
+      {/* MARQUEE TICKER */}
+      <MarqueeTicker />
 
       {/* 2. HIGHLIGHTS & 3D INTERACTION */}
       <section className="bg-[#EBE5D9] dark:bg-[#1E293B] py-24 md:py-32 transition-colors duration-500">
@@ -269,19 +364,52 @@ const Home = () => {
               <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80" alt="Highlight 1" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out dark:brightness-90" />
             </div>
 
-            {/* THREE.JS FABRIC MESH */}
-            <div className="md:col-span-3 md:col-start-10 relative aspect-[4/5] overflow-hidden mt-12 md:mt-32 rounded-xl z-10 shadow-xl bg-gradient-to-br from-[#FAF9F6] to-[#E8E6E1] dark:from-[#0F172A] dark:to-[#1E293B] flex items-center justify-center border border-white/20">
-              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-                <ambientLight intensity={0.6} />
-                <directionalLight position={[5, 10, 5]} intensity={2.5} color="#ffffff" />
-                <directionalLight position={[-5, -10, -5]} intensity={1} color="#8B5E3C" />
-                <FabricMesh />
-              </Canvas>
+            {/* ENHANCED THREE.JS FABRIC MESH */}
+            <div className="md:col-span-3 md:col-start-10 relative aspect-[4/5] overflow-hidden mt-12 md:mt-32 rounded-xl z-10 shadow-xl bg-gradient-to-br from-[#FAF9F6] to-[#E8E6E1] dark:from-[#0F172A] dark:to-[#1E293B] flex items-center justify-center border border-white/20 cursor-grab active:cursor-grabbing">
+              <EnhancedFabricScene />
               <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
-                <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-bold">Interactive Fabric</span>
+                <span className="text-[10px] uppercase tracking-widest text-black/40 dark:text-white/40 font-bold bg-white/10 dark:bg-black/20 backdrop-blur-sm px-3 py-1 rounded-full">✦ Interactive Fabric</span>
               </div>
             </div>
 
+          </div>
+        </div>
+      </section>
+
+      {/* CINEMATIC VIDEO SECTION */}
+      <section className="relative h-[80vh] overflow-hidden group">
+        <video autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover dark:brightness-75 scale-105 group-hover:scale-100 transition-transform duration-[3s]">
+          <source src="https://cdn.pixabay.com/video/2024/03/19/204680-924732498_large.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+          <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 1 }} viewport={{ once: true }}>
+            <div className="w-20 h-20 rounded-full border-2 border-white/40 flex items-center justify-center mb-8 mx-auto backdrop-blur-sm bg-white/5 hover:bg-white/20 hover:scale-110 transition-all duration-500 cursor-pointer">
+              <Play className="w-8 h-8 ml-1" />
+            </div>
+          </motion.div>
+          <motion.h2 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} viewport={{ once: true }} className="text-4xl md:text-6xl lg:text-7xl font-serif mb-4">Behind the Craft</motion.h2>
+          <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} viewport={{ once: true }} className="text-white/60 text-lg font-light max-w-lg">From thread to runway — a glimpse into our atelier.</motion.p>
+        </div>
+      </section>
+
+      {/* STATS SECTION */}
+      <section className="py-20 md:py-28 bg-[#FAF9F6] dark:bg-[#0F172A] border-y border-[#E8E6E1] dark:border-[#1E293B] transition-colors">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+            {[
+              { num: 50, suffix: '+', label: 'Collections' },
+              { num: 12, suffix: 'K+', label: 'Happy Customers' },
+              { num: 98, suffix: '%', label: 'Organic Materials' },
+              { num: 35, suffix: '+', label: 'Countries' }
+            ].map((stat, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: i * 0.1 }} viewport={{ once: true }}>
+                <div className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#1C1917] dark:text-white mb-2">
+                  <AnimatedCounter target={stat.num} suffix={stat.suffix} />
+                </div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#78716C] dark:text-[#94A3B8]">{stat.label}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -305,8 +433,72 @@ const Home = () => {
         ))}
       </div>
 
+      {/* EDITORIAL LOOKBOOK GRID */}
+      <section className="py-24 md:py-32 bg-[#FAF9F6] dark:bg-[#0B1120] transition-colors overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-16">
+            <div>
+              <span className="text-[#8B5E3C] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-4">Editorial</span>
+              <h2 className="text-4xl md:text-5xl font-serif text-[#1C1917] dark:text-white">The Lookbook</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+            {[
+              { src: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80', span: 'md:col-span-8 md:row-span-2', aspect: 'aspect-[16/10]', label: 'Autumn Layers' },
+              { src: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Minimal Chic' },
+              { src: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Street Style' },
+              { src: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Evening Edit' },
+              { src: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Resort Wear' },
+              { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Urban Elegance' }
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.08 }} viewport={{ once: true }} className={`${item.span} relative overflow-hidden rounded-2xl group cursor-pointer`}>
+                <div className={`${item.aspect} w-full`}>
+                  <img src={item.src} alt={item.label} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out dark:brightness-90" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+                    <span className="text-white text-sm font-bold uppercase tracking-[0.2em]">{item.label}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI TRY-ON CTA */}
+      <section className="py-24 md:py-32 bg-[#1C1917] dark:bg-[#0F172A] relative overflow-hidden transition-colors">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#8B5E3C] dark:bg-[#3B82F6] rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#8B5E3C] dark:bg-[#3B82F6] rounded-full blur-[120px]" />
+        </div>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
+              <span className="text-[#D7C9BA] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-6 flex items-center gap-2"><Sparkles className="w-3 h-3" />AI Powered</span>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-6 leading-tight">Try Before<br/>You Buy.</h2>
+              <p className="text-white/50 font-light text-lg mb-10 max-w-md">Our AI-powered virtual try-on lets you see exactly how every piece fits — right from your browser. No guessing, no returns.</p>
+              <Link to="/try-on" className="group inline-flex items-center gap-4 bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-[0.2em] text-xs hover:bg-[#8B5E3C] dark:hover:bg-[#3B82F6] hover:text-white transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                Try It Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }} viewport={{ once: true }} className="relative">
+              <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-[#8B5E3C]/20 to-[#8B5E3C]/5 dark:from-[#3B82F6]/20 dark:to-[#3B82F6]/5 border border-white/10 backdrop-blur-sm flex items-center justify-center">
+                <img src="https://images.unsplash.com/photo-1558171813-4c088753af8f?w=800&q=80" alt="Virtual Try-On" className="w-full h-full object-cover rounded-3xl opacity-80" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/20 text-center">
+                    <Sparkles className="w-8 h-8 text-white mx-auto mb-3" />
+                    <p className="text-white font-bold text-sm uppercase tracking-widest">AI Try-On</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* 4. THE PHILOSOPHY (GSAP ScrollTrigger Text) */}
       <section className="quote-section py-32 md:py-48 px-4 text-center bg-[#2C413D] dark:bg-[#000000] text-[#FAF9F6] relative overflow-hidden transition-colors duration-500">
+        <ParticleAtmosphere />
         <div className="max-w-4xl mx-auto relative z-10">
           <span className="text-[#D7C9BA] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-12 transition-colors">Our Philosophy</span>
           <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif leading-tight mb-16 text-[#FAF9F6] dark:text-white transition-colors flex flex-wrap justify-center gap-x-3 gap-y-2">
@@ -346,6 +538,13 @@ const Home = () => {
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-33.33%); }
+        }
+        .animate-marquee {
+          animation: marquee 25s linear infinite;
         }
       `}</style>
 
