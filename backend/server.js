@@ -9,7 +9,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -25,6 +26,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const offerRoutes = require('./routes/offerRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
+const tryonRoutes = require('./routes/tryonRoutes');
 
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
@@ -34,6 +36,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/collections', collectionRoutes);
+app.use('/api/tryon', tryonRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 

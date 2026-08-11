@@ -1,244 +1,231 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Camera, Sparkles, Upload, StopCircle, X, ZoomIn, ZoomOut } from 'lucide-react';
-
-const garments = [
-  { id: 1, name: 'Basic Blue Tee', src: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Blue_Tshirt.png' },
-  { id: 2, name: 'Red Cotton Shirt', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Red_t-shirt.png/640px-Red_t-shirt.png' },
-  { id: 3, name: 'Classic Polo', src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Polo_Shirt_Blue.png/640px-Polo_Shirt_Blue.png' }
-];
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Upload, Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
+import axios from 'axios';
 
 const TryOn = () => {
-  const [activeTab, setActiveTab] = useState('upload'); // upload or camera
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [selectedGarment, setSelectedGarment] = useState(null);
-  const [garmentScale, setGarmentScale] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [userImageBase64, setUserImageBase64] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   
-  const videoRef = useRef(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [resultImage, setResultImage] = useState(null);
+  const [error, setError] = useState('');
+
   const fileInputRef = useRef(null);
-  const containerRef = useRef(null);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setIsStreaming(true);
+  useEffect(() => {
+    // Fetch real products from the backend API
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get('https://cura-clothing.onrender.com/api/products');
+        setProducts(res.data.products || res.data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
       }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("Could not access camera. Please check your permissions.");
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-      setIsStreaming(false);
-    }
-  };
-
-  const handleTabChange = (tab) => {
-    if (activeTab === 'camera' && tab !== 'camera') {
-      stopCamera();
-    }
-    setActiveTab(tab);
-  };
+    };
+    fetchProducts();
+  }, []);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setUploadedImage(imageUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserImageBase64(reader.result);
+        setResultImage(null); // Reset result if new image uploaded
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const resetUpload = () => {
-    setUploadedImage(null);
-    setSelectedGarment(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleGenerate = async () => {
+    if (!userImageBase64 || !selectedProduct) return;
+    
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      // Connect to the local backend /api/tryon endpoint
+      // Ensure backend is running on localhost:5001
+      const response = await axios.post('http://localhost:5001/api/tryon', {
+        userImageBase64: userImageBase64,
+        garmentImageUrl: selectedProduct.imageUrl
+      });
+
+      if (response.data.success) {
+        setResultImage(response.data.resultUrl);
+      } else {
+        setError(response.data.message || "Failed to generate try-on.");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("AI Processing failed. Make sure your backend server is running and the API key is valid.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-  // Clean up object URLs
-  useEffect(() => {
-    return () => {
-      if (uploadedImage) URL.revokeObjectURL(uploadedImage);
-      stopCamera();
-    };
-  }, [uploadedImage]);
-
   return (
-    <div className="min-h-screen bg-slate-900 text-white pt-20 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0F172A] text-[#1E293B] dark:text-[#F8FAFC] pt-28 pb-20 transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
+        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center mb-6">
-            <span className="bg-white/10 text-white border border-white/20 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Sparkles className="w-3 h-3" /> Powered by CURA Vision AI
+            <span className="bg-[#1C1917] dark:bg-[#3B82F6] text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg">
+              <Sparkles className="w-3 h-3" /> Powered by Replicate AI
             </span>
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-6 leading-tight">
-            Virtual Try-On
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-4xl md:text-6xl font-serif text-[#1C1917] dark:text-white mb-6">
+            AI Virtual Try-On
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-xl text-gray-400 font-light">
-            Upload a photo or use your webcam. Drag and drop our clothing onto your body to see the fit.
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-lg text-[#57534E] dark:text-[#94A3B8] font-light max-w-2xl mx-auto">
+            Upload your photo and select a garment from our collection. Our AI will realistically drape the clothing onto your body.
           </motion.p>
         </div>
 
-        <div className="max-w-5xl mx-auto bg-black border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="flex border-b border-white/10">
-            <button 
-              onClick={() => handleTabChange('upload')}
-              className={`flex-1 py-6 font-bold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors ${activeTab === 'upload' ? 'bg-white/5 text-white' : 'text-gray-500 hover:text-white'}`}
+        <AnimatePresence mode="wait">
+          {isProcessing ? (
+            /* Loading State */
+            <motion.div 
+              key="loading"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="max-w-3xl mx-auto bg-white dark:bg-[#1E293B] rounded-3xl p-16 shadow-2xl flex flex-col items-center justify-center min-h-[500px] border border-[#E8E6E1] dark:border-white/10"
             >
-              <Upload className="w-5 h-5" /> Upload Photo
-            </button>
-            <button 
-              onClick={() => handleTabChange('camera')}
-              className={`flex-1 py-6 font-bold uppercase tracking-wider flex items-center justify-center gap-3 transition-colors ${activeTab === 'camera' ? 'bg-white/5 text-white' : 'text-gray-500 hover:text-white'}`}
+              <Loader2 className="w-16 h-16 text-[#8B5E3C] dark:text-[#3B82F6] animate-spin mb-8" />
+              <h2 className="text-3xl font-serif mb-4 text-center text-[#1C1917] dark:text-white">Generating your fit...</h2>
+              <p className="text-[#57534E] dark:text-[#94A3B8] text-center max-w-md">
+                Our AI is currently analyzing your body structure, mapping the fabric, and rendering realistic shadows and lighting. This typically takes a few seconds.
+              </p>
+            </motion.div>
+          ) : resultImage ? (
+            /* Result State */
+            <motion.div 
+              key="result"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="max-w-4xl mx-auto"
             >
-              <Camera className="w-5 h-5" /> Use Webcam
-            </button>
-          </div>
-          
-          <div className="p-4 md:p-12 min-h-[600px] flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
-             
-             {/* Main Viewer Area */}
-             <div 
-               ref={containerRef}
-               className="flex-1 w-full bg-gray-900 border border-white/10 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[500px]"
-             >
-                {/* Garment Overlay */}
-                {selectedGarment && (isStreaming || uploadedImage) && (
-                  <motion.div
-                    drag
-                    dragConstraints={containerRef}
-                    dragElastic={0.2}
-                    dragMomentum={false}
-                    className="absolute z-50 cursor-grab active:cursor-grabbing touch-none"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    style={{ scale: garmentScale }}
-                  >
-                    <img src={selectedGarment.src} alt="Overlay" className="w-64 h-auto pointer-events-none drop-shadow-2xl" />
-                  </motion.div>
-                )}
-
-                {/* Camera View */}
-                {activeTab === 'camera' && (
-                  <>
-                    <video 
-                      ref={videoRef} 
-                      className={`w-full h-full object-cover absolute inset-0 ${isStreaming ? 'opacity-100' : 'opacity-0'}`}
-                      playsInline 
-                      muted
-                    ></video>
-                    {!isStreaming && (
-                      <div className="text-center p-8 z-10">
-                        <div className="w-24 h-24 rounded-full border border-dashed border-gray-600 flex items-center justify-center mx-auto mb-6 relative">
-                          <Camera className="w-8 h-8 text-gray-500" />
-                          <div className="absolute inset-0 bg-white/5 rounded-full animate-ping"></div>
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Allow Camera Access</h3>
-                        <p className="text-gray-500 mb-8 max-w-xs mx-auto">We need access to your camera to overlay clothing on your live feed.</p>
-                        <button onClick={startCamera} className="bg-white text-black px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-gray-200 transition-all shadow-lg">
-                          Enable Camera
-                        </button>
-                      </div>
-                    )}
-                    {isStreaming && (
-                      <button onClick={stopCamera} className="absolute top-4 right-4 bg-red-500/80 backdrop-blur-md text-white p-3 rounded-full hover:bg-red-600 transition-all z-40">
-                        <StopCircle className="w-5 h-5" />
-                      </button>
-                    )}
-                  </>
-                )}
-
-                {/* Upload View */}
-                {activeTab === 'upload' && (
-                  <>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      ref={fileInputRef} 
-                      onChange={handleFileUpload} 
-                      className="hidden" 
-                    />
-                    
-                    {uploadedImage ? (
-                      <>
-                        <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain absolute inset-0" />
-                        <button onClick={resetUpload} className="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white p-3 rounded-full hover:bg-black/70 transition-all z-40">
-                          <X className="w-5 h-5" />
-                        </button>
-                      </>
-                    ) : (
-                      <div className="text-center p-8 z-10">
-                        <div className="w-24 h-24 rounded-full border border-dashed border-gray-600 flex items-center justify-center mx-auto mb-6 relative">
-                          <Upload className="w-8 h-8 text-gray-500" />
-                          <div className="absolute inset-0 bg-white/5 rounded-full animate-ping"></div>
-                        </div>
-                        <h3 className="text-xl font-bold mb-4">Drop your photo here</h3>
-                        <p className="text-gray-500 mb-8 max-w-xs mx-auto">Supports JPG, PNG. Ensure your full body is visible for best results.</p>
-                        <button onClick={() => fileInputRef.current?.click()} className="bg-white text-black px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-gray-200 transition-all shadow-lg">
-                          Browse Files
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-             </div>
-
-             {/* Sidebar: Garment Selection & Controls */}
-             <div className="w-full md:w-80 flex flex-col gap-6 z-10 relative">
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                  <h3 className="font-bold uppercase tracking-widest text-sm mb-4 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-blue-400" /> Select Garment
-                  </h3>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                    {garments.map(garment => (
-                      <button
-                        key={garment.id}
-                        onClick={() => setSelectedGarment(garment)}
-                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${selectedGarment?.id === garment.id ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'border-transparent hover:border-white/20 bg-white/5'}`}
-                      >
-                        <img src={garment.src} alt={garment.name} className="w-full h-full object-contain p-4" />
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-2 text-[10px] uppercase tracking-wider font-bold text-center">
-                          {garment.name}
-                        </div>
-                      </button>
-                    ))}
+              <div className="bg-white dark:bg-[#1E293B] rounded-3xl overflow-hidden shadow-2xl border border-[#E8E6E1] dark:border-white/10">
+                <div className="relative aspect-[3/4] md:aspect-video w-full bg-[#EAE7DF] dark:bg-black">
+                  <img src={resultImage} alt="Try-On Result" className="w-full h-full object-contain" />
+                </div>
+                <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div>
+                    <h3 className="text-2xl font-serif text-[#1C1917] dark:text-white mb-2">Looks great on you!</h3>
+                    <p className="text-[#57534E] dark:text-[#94A3B8]">{selectedProduct?.name}</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setResultImage(null)}
+                      className="px-6 py-3 border border-[#1C1917] dark:border-white/20 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    >
+                      Try Another
+                    </button>
+                    <button className="bg-[#1C1917] dark:bg-[#3B82F6] text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs shadow-lg hover:-translate-y-1 transition-transform">
+                      Add to Bag
+                    </button>
                   </div>
                 </div>
-
-                {/* Controls */}
-                {selectedGarment && (
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 className="font-bold uppercase tracking-widest text-sm mb-4 text-gray-400">Controls</h3>
-                    <div className="flex items-center justify-between gap-4">
-                      <button onClick={() => setGarmentScale(s => Math.max(0.5, s - 0.1))} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition">
-                        <ZoomOut className="w-4 h-4" />
-                      </button>
-                      <span className="text-xs font-bold tracking-widest">{(garmentScale * 100).toFixed(0)}%</span>
-                      <button onClick={() => setGarmentScale(s => Math.min(2, s + 0.1))} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition">
-                        <ZoomIn className="w-4 h-4" />
+              </div>
+            </motion.div>
+          ) : (
+            /* Setup State */
+            <motion.div 
+              key="setup"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto"
+            >
+              {/* Step 1: Upload Photo */}
+              <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 shadow-xl border border-[#E8E6E1] dark:border-white/10 flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-8 h-8 rounded-full bg-[#1C1917] dark:bg-[#3B82F6] text-white flex items-center justify-center font-bold">1</div>
+                  <h2 className="text-2xl font-serif text-[#1C1917] dark:text-white">Upload Your Photo</h2>
+                </div>
+                
+                <div className="flex-1 relative rounded-2xl overflow-hidden border-2 border-dashed border-[#D7C9BA] dark:border-gray-600 bg-[#FAF9F6] dark:bg-black/20 flex flex-col items-center justify-center p-8 group min-h-[400px]">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    ref={fileInputRef} 
+                    onChange={handleFileUpload} 
+                    className="hidden" 
+                  />
+                  
+                  {userImageBase64 ? (
+                    <>
+                      <img src={userImageBase64} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" />
+                      <div className="relative z-10 bg-white/90 dark:bg-black/80 backdrop-blur-sm px-6 py-4 rounded-2xl shadow-lg text-center">
+                        <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                        <p className="font-bold text-[#1C1917] dark:text-white">Photo Uploaded</p>
+                        <button onClick={() => fileInputRef.current?.click()} className="text-xs text-[#8B5E3C] dark:text-[#3B82F6] uppercase tracking-widest mt-2 underline">Change Photo</button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-white dark:bg-[#1E293B] rounded-full shadow-md flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <Upload className="w-8 h-8 text-[#57534E] dark:text-gray-400" />
+                      </div>
+                      <h3 className="font-bold text-lg mb-2 text-[#1C1917] dark:text-white">Drag & drop or browse</h3>
+                      <p className="text-sm text-[#78716C] dark:text-gray-500 max-w-xs mx-auto mb-6">
+                        For best results, upload a photo where you are standing straight, facing forward.
+                      </p>
+                      <button onClick={() => fileInputRef.current?.click()} className="bg-[#1C1917] dark:bg-white text-white dark:text-black px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs shadow-lg hover:-translate-y-1 transition-transform">
+                        Upload Photo
                       </button>
                     </div>
-                    <p className="text-[10px] text-gray-500 text-center mt-4 uppercase tracking-widest">
-                      Drag garment to position
-                    </p>
-                  </div>
-                )}
-             </div>
-             
-          </div>
-        </div>
+                  )}
+                </div>
+              </div>
 
+              {/* Step 2: Select Garment */}
+              <div className="bg-white dark:bg-[#1E293B] rounded-3xl p-8 shadow-xl border border-[#E8E6E1] dark:border-white/10 flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-8 h-8 rounded-full bg-[#1C1917] dark:bg-[#3B82F6] text-white flex items-center justify-center font-bold">2</div>
+                  <h2 className="text-2xl font-serif text-[#1C1917] dark:text-white">Select Garment</h2>
+                </div>
+
+                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto pr-2 custom-scrollbar max-h-[400px]">
+                  {products.map(product => (
+                    <button
+                      key={product._id}
+                      onClick={() => setSelectedProduct(product)}
+                      className={`relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all group ${selectedProduct?._id === product._id ? 'border-[#8B5E3C] dark:border-[#3B82F6] shadow-lg scale-[0.98]' : 'border-transparent bg-[#FAF9F6] dark:bg-black/20 hover:border-[#D7C9BA] dark:hover:border-gray-600'}`}
+                    >
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                        <span className="text-white text-xs font-bold leading-tight">{product.name}</span>
+                      </div>
+                      {selectedProduct?._id === product._id && (
+                        <div className="absolute top-2 right-2 bg-[#8B5E3C] dark:bg-[#3B82F6] rounded-full p-1 shadow-md">
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Generate Button */}
+                <div className="mt-8 pt-8 border-t border-[#E8E6E1] dark:border-white/10">
+                  {error && <p className="text-red-500 text-sm mb-4 text-center bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800">{error}</p>}
+                  
+                  <button 
+                    onClick={handleGenerate}
+                    disabled={!userImageBase64 || !selectedProduct || isProcessing}
+                    className={`w-full py-5 rounded-full font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all ${(!userImageBase64 || !selectedProduct) ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-[#1C1917] dark:bg-[#3B82F6] text-white shadow-xl hover:shadow-2xl hover:-translate-y-1'}`}
+                  >
+                    <Sparkles className="w-5 h-5" />
+                    Generate Try-On
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
