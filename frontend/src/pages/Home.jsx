@@ -244,7 +244,7 @@ const Home = () => {
         </div>
 
         {/* Right Side */}
-        <div className="w-full md:w-1/2 h-[50vw] sm:h-[60vw] md:h-full min-h-[300px] md:min-h-0 relative overflow-hidden bg-[#EAE7DF] dark:bg-[#1E293B]">
+        <div className="w-full md:w-1/2 h-[50vw] sm:h-[60vw] md:h-auto min-h-[300px] relative overflow-hidden bg-[#EAE7DF] dark:bg-[#1E293B]">
           <img 
             src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1200&q=80" alt="Editorial Campaign" 
             className="hero-image absolute inset-0 w-full h-full object-cover object-top dark:brightness-90 scale-[1.15] origin-top"
