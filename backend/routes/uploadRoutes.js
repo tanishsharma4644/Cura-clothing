@@ -37,9 +37,16 @@ router.post('/', upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).send({ message: 'No file uploaded' });
   }
+  
+  // Enforce https if Cloudinary returns http
+  let url = req.file.path;
+  if (url && url.startsWith('http://')) {
+    url = url.replace('http://', 'https://');
+  }
+
   res.send({
     message: 'Image Uploaded to Cloudinary',
-    imageUrl: req.file.path, // Cloudinary provides the URL in req.file.path
+    imageUrl: url, 
   });
 });
 

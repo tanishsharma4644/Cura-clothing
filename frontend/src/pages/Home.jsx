@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { ShoppingBag, ArrowRight, Sparkles, Play } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Sparkles, Play, Truck, RotateCcw, Leaf, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import gsap from 'gsap';
@@ -347,6 +347,58 @@ const Home = () => {
       {/* MARQUEE TICKER */}
       <MarqueeTicker />
 
+      {/* BRAND TRUST BAR */}
+      <section className="py-6 md:py-8 bg-white dark:bg-[#0F172A] border-b border-[#E8E6E1] dark:border-[#1E293B] transition-colors">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-4">
+            {[
+              { icon: Truck, label: 'Free Shipping', desc: 'On orders over $150' },
+              { icon: RotateCcw, label: 'Easy Returns', desc: '30-day hassle free' },
+              { icon: Leaf, label: 'Sustainable', desc: '100% organic materials' },
+              { icon: Shield, label: 'Premium Quality', desc: 'Handcrafted with care' },
+            ].map((item, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: i * 0.08 }} viewport={{ once: true }} className="flex items-center gap-3 justify-center md:justify-start">
+                <div className="w-10 h-10 rounded-full bg-[#FAF9F6] dark:bg-[#1E293B] border border-[#E8E6E1] dark:border-[#334155] flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-4 h-4 text-[#8B5E3C] dark:text-[#3B82F6]" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#1C1917] dark:text-white uppercase tracking-wider">{item.label}</p>
+                  <p className="text-[10px] text-[#78716C] dark:text-[#94A3B8]">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SHOP BY CATEGORY — Compact circular strip */}
+      <section className="py-10 md:py-14 bg-[#FAF9F6] dark:bg-[#0F172A] transition-colors duration-500">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-serif text-[#1C1917] dark:text-white">Shop by Category</h2>
+          </div>
+          <div className="flex justify-center">
+            <div className="grid grid-cols-4 gap-8 md:gap-20 w-full max-w-3xl">
+              {[
+                { label: 'Men', img: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?w=300&q=80', link: '/shop?category=Men' },
+                { label: 'Women', img: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&q=80', link: '/shop?category=Women' },
+                { label: 'Accessories', img: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=300&q=80', link: '/shop?category=Accessories' },
+                { label: 'New In', img: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&q=80', link: '/shop?category=New Arrivals' },
+              ].map((cat, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.1 }} viewport={{ once: true }}>
+                  <Link to={cat.link} className="group flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden ring-2 ring-[#E8E6E1] dark:ring-[#334155] group-hover:ring-[#8B5E3C] dark:group-hover:ring-[#3B82F6] transition-all duration-500 group-hover:scale-105 shadow-sm">
+                      <img src={cat.img} alt={cat.label} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    </div>
+                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#1C1917] dark:text-white group-hover:text-[#8B5E3C] dark:group-hover:text-[#3B82F6] transition-colors">{cat.label}</span>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 2. HIGHLIGHTS & 3D INTERACTION */}
       <section className="bg-[#EBE5D9] dark:bg-[#1E293B] py-24 md:py-32 transition-colors duration-500">
         <div className="px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
@@ -433,33 +485,49 @@ const Home = () => {
         ))}
       </div>
 
-      {/* EDITORIAL LOOKBOOK GRID */}
-      <section className="py-24 md:py-32 bg-[#FAF9F6] dark:bg-[#0B1120] transition-colors overflow-hidden">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-16">
-            <div>
-              <span className="text-[#8B5E3C] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-4">Editorial</span>
-              <h2 className="text-4xl md:text-5xl font-serif text-[#1C1917] dark:text-white">The Lookbook</h2>
-            </div>
+      {/* CUSTOMER TESTIMONIALS */}
+      <section className="py-20 md:py-28 bg-[#FAF9F6] dark:bg-[#0B1120] transition-colors overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+          <div className="text-center">
+            <span className="text-[#8B5E3C] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-4">What They Say</span>
+            <h2 className="text-4xl md:text-5xl font-serif text-[#1C1917] dark:text-white">Loved by Thousands</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+        </div>
+        {/* Auto-scrolling testimonial strip */}
+        <div className="overflow-hidden select-none">
+          <div className="flex animate-marquee-slow gap-6 w-max">
             {[
-              { src: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80', span: 'md:col-span-8 md:row-span-2', aspect: 'aspect-[16/10]', label: 'Autumn Layers' },
-              { src: 'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Minimal Chic' },
-              { src: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Street Style' },
-              { src: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Evening Edit' },
-              { src: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Resort Wear' },
-              { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80', span: 'md:col-span-4', aspect: 'aspect-[4/5]', label: 'Urban Elegance' }
-            ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: i * 0.08 }} viewport={{ once: true }} className={`${item.span} relative overflow-hidden rounded-2xl group cursor-pointer`}>
-                <div className={`${item.aspect} w-full`}>
-                  <img src={item.src} alt={item.label} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out dark:brightness-90" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-white text-sm font-bold uppercase tracking-[0.2em]">{item.label}</span>
-                  </div>
+              { name: 'Priya S.', location: 'Mumbai', text: 'The quality is unreal. I\'ve never felt fabric this soft — truly premium craftsmanship.', rating: 5 },
+              { name: 'James L.', location: 'London', text: 'CURA is the only brand where every single piece feels like it was made just for me.', rating: 5 },
+              { name: 'Aisha K.', location: 'Dubai', text: 'From packaging to fit, everything screams luxury. My entire wardrobe is CURA now.', rating: 5 },
+              { name: 'Marco R.', location: 'Milan', text: 'Minimalist, elegant, and sustainable. This is what modern fashion should look like.', rating: 5 },
+              { name: 'Emily T.', location: 'New York', text: 'The AI try-on feature sold me instantly. No more guessing sizes — it\'s the future.', rating: 5 },
+              { name: 'Ravi M.', location: 'Bangalore', text: 'Ordered three shirts and each one fits perfectly. The attention to detail is incredible.', rating: 4 },
+              { name: 'Priya S.', location: 'Mumbai', text: 'The quality is unreal. I\'ve never felt fabric this soft — truly premium craftsmanship.', rating: 5 },
+              { name: 'James L.', location: 'London', text: 'CURA is the only brand where every single piece feels like it was made just for me.', rating: 5 },
+              { name: 'Aisha K.', location: 'Dubai', text: 'From packaging to fit, everything screams luxury. My entire wardrobe is CURA now.', rating: 5 },
+              { name: 'Marco R.', location: 'Milan', text: 'Minimalist, elegant, and sustainable. This is what modern fashion should look like.', rating: 5 },
+              { name: 'Emily T.', location: 'New York', text: 'The AI try-on feature sold me instantly. No more guessing sizes — it\'s the future.', rating: 5 },
+              { name: 'Ravi M.', location: 'Bangalore', text: 'Ordered three shirts and each one fits perfectly. The attention to detail is incredible.', rating: 4 },
+            ].map((review, i) => (
+              <div key={i} className="flex-shrink-0 w-[340px] bg-white dark:bg-[#1E293B] rounded-2xl p-8 shadow-sm border border-[#E8E6E1] dark:border-[#334155] hover:shadow-lg transition-shadow duration-300">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: review.rating }).map((_, s) => (
+                    <span key={s} className="text-[#8B5E3C] dark:text-[#3B82F6] text-sm">★</span>
+                  ))}
+                  {Array.from({ length: 5 - review.rating }).map((_, s) => (
+                    <span key={s} className="text-gray-300 dark:text-gray-600 text-sm">★</span>
+                  ))}
                 </div>
-              </motion.div>
+                <p className="text-[#1C1917] dark:text-white text-sm leading-relaxed mb-6 font-light italic">"{review.text}"</p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[#1C1917] dark:text-white text-xs font-bold uppercase tracking-wider">{review.name}</p>
+                    <p className="text-[#78716C] dark:text-[#94A3B8] text-[10px] tracking-wider">{review.location}</p>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#8B5E3C] dark:text-[#3B82F6] bg-[#8B5E3C]/10 dark:bg-[#3B82F6]/10 px-2 py-1 rounded-full">✓ Verified</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -513,6 +581,47 @@ const Home = () => {
         </div>
       </section>
 
+      {/* INSTAGRAM / #CURAstyle FEED */}
+      <section className="py-20 md:py-24 bg-[#FAF9F6] dark:bg-[#0F172A] transition-colors">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-[#8B5E3C] dark:text-[#3B82F6] text-xs font-bold tracking-[0.2em] uppercase block mb-4">Follow Us</span>
+            <h2 className="text-4xl md:text-5xl font-serif text-[#1C1917] dark:text-white mb-3">#CURAstyle</h2>
+            <p className="text-[#78716C] dark:text-[#94A3B8] text-sm font-light">Tag us to get featured — join 12K+ customers sharing their looks</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+            {[
+              'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80',
+              'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80',
+              'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=80',
+              'https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=400&q=80',
+              'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&q=80',
+              'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80',
+            ].map((src, i) => (
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: i * 0.06 }} viewport={{ once: true }} className="relative aspect-square overflow-hidden rounded-xl group cursor-pointer">
+                <img src={src} alt={`CURA style ${i+1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 dark:brightness-90" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 drop-shadow-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-[#8B5E3C] dark:text-[#3B82F6] hover:text-[#1C1917] dark:hover:text-white transition-colors border-b border-[#8B5E3C] dark:border-[#3B82F6] pb-1">
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg> Follow @curastyle
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* 5. NEWSLETTER */}
       <section className="py-32 px-4 bg-[#D7C9BA] dark:bg-[#1E293B] text-center transition-colors duration-500">
         <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }} className="max-w-3xl mx-auto">
@@ -545,6 +654,13 @@ const Home = () => {
         }
         .animate-marquee {
           animation: marquee 25s linear infinite;
+        }
+        @keyframes marquee-slow {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee-slow {
+          animation: marquee-slow 40s linear infinite;
         }
       `}</style>
 

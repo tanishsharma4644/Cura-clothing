@@ -182,7 +182,14 @@ const AdminDashboard = () => {
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
       const { data } = await axios.post('https://cura-clothing.onrender.com/api/upload', formDataUpload, config);
-      setFormData({ ...formData, imageUrl: data.imageUrl }); // Cloudinary returns a full URL
+      
+      let url = data.imageUrl;
+      if (url) {
+        if (url.startsWith('http://')) url = url.replace('http://', 'https://');
+        else if (url.startsWith('htp://')) url = url.replace('htp://', 'https://');
+      }
+      
+      setFormData({ ...formData, imageUrl: url }); // Cloudinary returns a full URL
     } catch (error) {
       console.error(error);
       alert('Error uploading image');
@@ -195,8 +202,16 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      
+      let finalImageUrl = formData.imageUrl;
+      if (finalImageUrl) {
+        if (finalImageUrl.startsWith('http://')) finalImageUrl = finalImageUrl.replace('http://', 'https://');
+        else if (finalImageUrl.startsWith('htp://')) finalImageUrl = finalImageUrl.replace('htp://', 'https://');
+      }
+
       const dataToSave = {
         ...formData,
+        imageUrl: finalImageUrl,
         sizes: formData.sizes.split(',').map(s => s.trim()).filter(s => s),
         colors: formData.colors.split(',').map(c => c.trim()).filter(c => c)
       };
@@ -323,10 +338,19 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      
+      let finalImageUrl = collectionFormData.imageUrl;
+      if (finalImageUrl) {
+        if (finalImageUrl.startsWith('http://')) finalImageUrl = finalImageUrl.replace('http://', 'https://');
+        else if (finalImageUrl.startsWith('htp://')) finalImageUrl = finalImageUrl.replace('htp://', 'https://');
+      }
+      
+      const payload = { ...collectionFormData, imageUrl: finalImageUrl };
+
       if (editingCollection) {
-        await axios.put(`https://cura-clothing.onrender.com/api/collections/${editingCollection._id}`, collectionFormData, config);
+        await axios.put(`https://cura-clothing.onrender.com/api/collections/${editingCollection._id}`, payload, config);
       } else {
-        await axios.post('https://cura-clothing.onrender.com/api/collections', collectionFormData, config);
+        await axios.post('https://cura-clothing.onrender.com/api/collections', payload, config);
       }
       const { data } = await axios.get('https://cura-clothing.onrender.com/api/collections/admin', config);
       setCollections(data);
