@@ -113,6 +113,14 @@ const Navbar = () => {
                 </span>
                 <span className="absolute bottom-6 left-0 w-0 h-0.5 bg-black transition-all duration-300 group-hover:w-full"></span>
               </Link>
+
+              {/* Track Order link */}
+              <Link to="/track-order" className="h-full flex items-center relative group text-gray-500 hover:text-black dark:hover:text-white transition-colors whitespace-nowrap">
+                <span className="uppercase flex items-center gap-1">
+                  Track Order
+                </span>
+                <span className="absolute bottom-6 left-0 w-0 h-0.5 bg-black dark:bg-white transition-all duration-300 group-hover:w-full"></span>
+              </Link>
             </div>
 
             {/* Right Icons */}

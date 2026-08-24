@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Wand2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -45,11 +45,14 @@ export default function Login() {
         return;
       }
       setLoading(true);
-      // Simulate magic link sending
-      setTimeout(() => {
+      try {
+        await axios.post('http://localhost:5001/api/users/send-magic-link', { email });
+        setError('✨ Magic link sent! Check your inbox — it expires in 15 minutes.');
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to send magic link. Please try again.');
+      } finally {
         setLoading(false);
-        setError('Magic link sent! Please check your inbox.');
-      }, 1500);
+      }
       return;
     }
 
@@ -242,9 +245,9 @@ export default function Login() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Password
                     </label>
-                    <a href="#" className="text-sm font-medium text-slate-900 dark:text-white hover:underline">
+                    <Link to="/forgot-password" className="text-sm font-medium text-slate-900 dark:text-white hover:underline">
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors">

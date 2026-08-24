@@ -97,8 +97,14 @@ const CheckoutForm = () => {
           paidAt: new Date()
         };
 
-        await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
-        
+        let createdOrderRes;
+        try {
+          createdOrderRes = await axios.post('http://localhost:5001/api/orders', orderData, config);
+        } catch (e) {
+          createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
+        }
+
+        setCreatedOrderId(createdOrderRes.data._id);
         setIsProcessing(false);
         setIsSuccess(true);
         clearCart();
@@ -111,14 +117,27 @@ const CheckoutForm = () => {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0F172A] flex items-center justify-center pt-20 transition-colors duration-500">
-        <div className="bg-white dark:bg-[#1E293B] p-12 text-center max-w-lg mx-auto shadow-xl border border-gray-100 dark:border-gray-800 transition-colors duration-500">
-          <CheckCircle2 className="w-16 h-16 text-[#3B82F6] mx-auto mb-6" />
-          <h1 className="text-3xl font-serif text-[#1C1917] dark:text-white mb-4 transition-colors">Order Confirmed</h1>
-          <p className="text-[#57534E] dark:text-[#94A3B8] mb-8 font-light transition-colors">Thank you for shopping with OC. Your order has been securely placed and paid for.</p>
-          <Link to="/" className="inline-block bg-[#1C1917] dark:bg-[#3B82F6] text-white px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors">
-            Continue Shopping
-          </Link>
+      <div className="min-h-screen bg-[#0F1117] flex items-center justify-center pt-24 pb-20 px-4">
+        <div className="bg-[#131622] border border-[#C5A059]/40 p-8 sm:p-12 text-center max-w-lg mx-auto shadow-2xl rounded-3xl">
+          <CheckCircle2 className="w-16 h-16 text-[#C5A059] mx-auto mb-6 animate-bounce" />
+          <h1 className="text-3xl font-serif text-white mb-2">Order Confirmed! ✨</h1>
+          <p className="text-gray-300 text-sm mb-4 font-light leading-relaxed">
+            Thank you for shopping with CURA Atelier. Your payment was processed successfully.
+          </p>
+          <div className="bg-black/50 border border-white/10 p-4 rounded-2xl mb-6 text-xs font-mono text-[#E2C792] text-left space-y-1.5">
+            <p>📧 A complete order confirmation email with itemized details & receipt has been sent to <span className="text-white font-bold">{user?.email}</span>.</p>
+            {createdOrderId && <p>📦 Order Reference ID: <span className="text-white font-bold">{createdOrderId}</span></p>}
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {createdOrderId && (
+              <Link to={`/track-order?id=${createdOrderId}`} className="bg-[#C5A059] text-black px-6 py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider hover:bg-white transition-colors">
+                Track Shipment Live
+              </Link>
+            )}
+            <Link to="/shop" className="bg-white/10 border border-white/20 text-white px-6 py-3.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/20 transition-colors">
+              Continue Shopping
+            </Link>
+          </div>
         </div>
       </div>
     );

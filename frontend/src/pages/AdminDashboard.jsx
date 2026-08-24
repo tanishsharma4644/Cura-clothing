@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import Loader from '../components/Loader';
 
+const API_BASE = 'http://localhost:5001';
+
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -79,21 +81,21 @@ const AdminDashboard = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const [usersRes, ordersRes, productsRes, settingsRes, offersRes, collectionsRes] = await Promise.all([
-          axios.get('https://cura-clothing.onrender.com/api/users', config),
-          axios.get('https://cura-clothing.onrender.com/api/orders', config),
-          axios.get('https://cura-clothing.onrender.com/api/products'),
-          axios.get('https://cura-clothing.onrender.com/api/settings'),
-          axios.get('https://cura-clothing.onrender.com/api/offers'),
-          axios.get('https://cura-clothing.onrender.com/api/collections/admin', config)
+          axios.get(`${API_BASE}/api/users`, config).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/api/orders`, config).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/api/products`).catch(() => ({ data: { products: [] } })),
+          axios.get(`${API_BASE}/api/settings`).catch(() => ({ data: null })),
+          axios.get(`${API_BASE}/api/offers`).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE}/api/collections/admin`, config).catch(() => ({ data: [] }))
         ]);
-        setUsers(usersRes.data);
-        setOrders(ordersRes.data);
-        setProducts(productsRes.data.products || productsRes.data);
-        setOffers(offersRes.data);
-        setCollections(collectionsRes.data);
+        setUsers(usersRes.data || []);
+        setOrders(ordersRes.data || []);
+        setProducts(productsRes.data.products || productsRes.data || []);
+        setOffers(offersRes.data || []);
+        setCollections(collectionsRes.data || []);
         if (settingsRes.data) {
-          setMarqueeText(settingsRes.data.marqueeText);
-          setMarqueeActive(settingsRes.data.marqueeActive);
+          setMarqueeText(settingsRes.data.marqueeText || '⚡ FREE EXPRESS SHIPPING ON ALL ORDERS ⚡');
+          setMarqueeActive(settingsRes.data.marqueeActive ?? true);
         }
       } catch (error) {
         console.error('Error fetching admin data', error);
@@ -181,7 +183,7 @@ const AdminDashboard = () => {
 
     try {
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-      const { data } = await axios.post('https://cura-clothing.onrender.com/api/upload', formDataUpload, config);
+      const { data } = await axios.post(`${API_BASE}/api/upload`, formDataUpload, config);
       
       let url = data.imageUrl;
       if (url) {
@@ -217,12 +219,12 @@ const AdminDashboard = () => {
       };
 
       if (editingProduct) {
-        await axios.put(`https://cura-clothing.onrender.com/api/products/${editingProduct._id}`, dataToSave, config);
+        await axios.put(`${API_BASE}/api/products/${editingProduct._id}`, dataToSave, config);
       } else {
-        await axios.post('https://cura-clothing.onrender.com/api/products', dataToSave, config);
+        await axios.post(`${API_BASE}/api/products`, dataToSave, config);
       }
       
-      const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
+      const { data } = await axios.get(`${API_BASE}/api/products`);
       setProducts(data.products || data);
       setShowModal(false);
     } catch (e) {
@@ -234,9 +236,9 @@ const AdminDashboard = () => {
   const handleDeliver = async (orderId) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`https://cura-clothing.onrender.com/api/orders/${orderId}/deliver`, {}, config);
+      await axios.put(`${API_BASE}/api/orders/${orderId}/deliver`, {}, config);
       
-      const { data } = await axios.get('https://cura-clothing.onrender.com/api/orders', config);
+      const { data } = await axios.get(`${API_BASE}/api/orders`, config);
       setOrders(data);
       if (selectedOrder && selectedOrder._id === orderId) {
          setSelectedOrder(data.find(o => o._id === orderId));
@@ -251,10 +253,10 @@ const AdminDashboard = () => {
     if (window.confirm('Are you sure you want to delete this order?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`https://cura-clothing.onrender.com/api/orders/${orderId}`, config);
+        await axios.delete(`${API_BASE}/api/orders/${orderId}`, config);
         
         // Refresh the orders list
-        const { data } = await axios.get('https://cura-clothing.onrender.com/api/orders', config);
+        const { data } = await axios.get(`${API_BASE}/api/orders`, config);
         setOrders(data);
       } catch (e) {
         console.error(e);
@@ -266,12 +268,12 @@ const AdminDashboard = () => {
   const handleToggleNewArrival = async (product) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`https://cura-clothing.onrender.com/api/products/${product._id}`, {
+      await axios.put(`${API_BASE}/api/products/${product._id}`, {
         ...product,
         isNewArrival: !product.isNewArrival
       }, config);
       
-      const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
+      const { data } = await axios.get(`${API_BASE}/api/products`);
       setProducts(data.products || data);
     } catch (e) {
       console.error(e);
@@ -282,7 +284,7 @@ const AdminDashboard = () => {
   const handlePublishSettings = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put('https://cura-clothing.onrender.com/api/settings', {
+      await axios.put(`${API_BASE}/api/settings`, {
         marqueeText,
         marqueeActive
       }, config);
@@ -301,7 +303,7 @@ const AdminDashboard = () => {
     setSendingBroadcast(true);
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.post('https://cura-clothing.onrender.com/api/settings/broadcast', {
+      const { data } = await axios.post(`${API_BASE}/api/settings/broadcast`, {
         subject: broadcastSubject,
         message: broadcastMessage
       }, config);
@@ -322,11 +324,11 @@ const AdminDashboard = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       if (editingOffer) {
-        await axios.put(`https://cura-clothing.onrender.com/api/offers/${editingOffer._id}`, offerFormData, config);
+        await axios.put(`${API_BASE}/api/offers/${editingOffer._id}`, offerFormData, config);
       } else {
-        await axios.post('https://cura-clothing.onrender.com/api/offers', offerFormData, config);
+        await axios.post(`${API_BASE}/api/offers`, offerFormData, config);
       }
-      const { data } = await axios.get('https://cura-clothing.onrender.com/api/offers');
+      const { data } = await axios.get(`${API_BASE}/api/offers`);
       setOffers(data);
       setShowOfferModal(false);
     } catch (e) {
@@ -348,11 +350,11 @@ const AdminDashboard = () => {
       const payload = { ...collectionFormData, imageUrl: finalImageUrl };
 
       if (editingCollection) {
-        await axios.put(`https://cura-clothing.onrender.com/api/collections/${editingCollection._id}`, payload, config);
+        await axios.put(`${API_BASE}/api/collections/${editingCollection._id}`, payload, config);
       } else {
-        await axios.post('https://cura-clothing.onrender.com/api/collections', payload, config);
+        await axios.post(`${API_BASE}/api/collections`, payload, config);
       }
-      const { data } = await axios.get('https://cura-clothing.onrender.com/api/collections/admin', config);
+      const { data } = await axios.get(`${API_BASE}/api/collections/admin`, config);
       setCollections(data);
       setShowCollectionModal(false);
     } catch (e) {
@@ -364,8 +366,8 @@ const AdminDashboard = () => {
     if(window.confirm('Promote this user to Admin?')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.put(`https://cura-clothing.onrender.com/api/users/${userId}/promote`, {}, config);
-        const { data } = await axios.get('https://cura-clothing.onrender.com/api/users', config);
+        await axios.put(`${API_BASE}/api/users/${userId}/promote`, {}, config);
+        const { data } = await axios.get(`${API_BASE}/api/users`, config);
         setUsers(data);
       } catch (e) { console.error(e); alert('Error promoting user'); }
     }
@@ -375,7 +377,7 @@ const AdminDashboard = () => {
     if(window.confirm('Ban and remove this user? This cannot be undone.')) {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
-        await axios.delete(`https://cura-clothing.onrender.com/api/users/${userId}/ban`, config);
+        await axios.delete(`${API_BASE}/api/users/${userId}/ban`, config);
         setUsers(users.filter(u => u._id !== userId));
       } catch (e) { console.error(e); alert(e.response?.data?.message || 'Error banning user'); }
     }
@@ -499,8 +501,8 @@ const AdminDashboard = () => {
                         if(window.confirm('Delete this product?')) {
                           try {
                             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                            await axios.delete(`https://cura-clothing.onrender.com/api/products/${p._id}`, config);
-                            const { data } = await axios.get('https://cura-clothing.onrender.com/api/products');
+                            await axios.delete(`${API_BASE}/api/products/${p._id}`, config);
+                            const { data } = await axios.get(`${API_BASE}/api/products`);
                             setProducts(data.products || data);
                           } catch(e) { console.error(e); }
                         }
@@ -717,7 +719,7 @@ const AdminDashboard = () => {
                       if(window.confirm('Delete this collection?')) {
                         try {
                           const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                          await axios.delete(`https://cura-clothing.onrender.com/api/collections/${col._id}`, config);
+                          await axios.delete(`${API_BASE}/api/collections/${col._id}`, config);
                           setCollections(collections.filter(c => c._id !== col._id));
                         } catch(e) { console.error(e); }
                       }
@@ -733,15 +735,32 @@ const AdminDashboard = () => {
     </div>
   );
 
+  const handleToggleOfferStatus = async (offer) => {
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await axios.put(`${API_BASE}/api/offers/${offer._id}`, {
+        ...offer,
+        isActive: !offer.isActive
+      }, config);
+      setOffers(offers.map(o => o._id === offer._id ? data : o));
+    } catch (e) {
+      console.error(e);
+      alert('Error updating offer status');
+    }
+  };
+
   const renderOffers = () => (
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-serif dark:text-white">Offers & Discounts</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-serif dark:text-white">Offers & Coupon Codes</h2>
+          <p className="text-xs text-gray-400 mt-1">Manage, activate, or create new promotional codes and auto-discounts for your customers.</p>
+        </div>
         <button 
           onClick={() => openOfferModal()}
           className="bg-black dark:bg-[#3B82F6] text-white px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] rounded-md hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors shadow-lg"
         >
-          + Add Offer
+          + Add New Offer
         </button>
       </div>
 
@@ -758,39 +777,59 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {offers.map(o => (
-                <tr key={o._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                  <td className="px-6 py-4 font-bold uppercase text-[10px] tracking-wider">{o.type}</td>
-                  <td className="px-6 py-4 dark:text-white">
-                    <div className="font-bold">{o.title}</div>
-                    {o.type === 'promocode' && <div className="text-xs text-gray-400 font-mono mt-1">{o.code}</div>}
-                    {o.type === 'automatic' && <div className="text-xs text-gray-400 mt-1">Min Items: {o.minItems}</div>}
-                  </td>
-                  <td className="px-6 py-4 font-bold dark:text-white">{o.discountPercentage}% OFF</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${o.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {o.isActive ? 'Active' : 'Disabled'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-4">
-                    <button onClick={() => openOfferModal(o)} className="text-blue-500 hover:text-blue-700 font-bold text-xs uppercase">Edit</button>
-                    <button 
-                      onClick={async () => {
-                        if(window.confirm('Delete this offer?')) {
-                          try {
-                            const config = { headers: { Authorization: `Bearer ${user.token}` } };
-                            await axios.delete(`https://cura-clothing.onrender.com/api/offers/${o._id}`, config);
-                            setOffers(offers.filter(off => off._id !== o._id));
-                          } catch(e) { console.error(e); }
-                        }
-                      }}
-                      className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
-                    >
-                      Delete
-                    </button>
+              {offers.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-400">
+                    No offers created yet. Click "+ Add New Offer" to create your first coupon!
                   </td>
                 </tr>
-              ))}
+              ) : (
+                offers.map(o => (
+                  <tr key={o._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="px-6 py-4 font-bold uppercase text-[10px] tracking-wider">
+                      <span className={`px-2 py-1 rounded ${o.type === 'promocode' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {o.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 dark:text-white">
+                      <div className="font-bold">{o.title}</div>
+                      {o.type === 'promocode' && (
+                        <div className="text-xs font-mono bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded inline-block mt-1 font-bold text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
+                          {o.code}
+                        </div>
+                      )}
+                      {o.type === 'automatic' && <div className="text-xs text-gray-400 mt-1">Min Items: {o.minItems}</div>}
+                    </td>
+                    <td className="px-6 py-4 font-bold dark:text-white text-base">{o.discountPercentage}% OFF</td>
+                    <td className="px-6 py-4">
+                      <button 
+                        onClick={() => handleToggleOfferStatus(o)}
+                        className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full transition-colors ${o.isActive ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        title="Click to toggle active status"
+                      >
+                        {o.isActive ? '✓ Active' : '✕ Disabled'}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-right space-x-4">
+                      <button onClick={() => openOfferModal(o)} className="text-blue-500 hover:text-blue-700 font-bold text-xs uppercase">Edit</button>
+                      <button 
+                        onClick={async () => {
+                          if(window.confirm(`Are you sure you want to delete offer "${o.title}"?`)) {
+                            try {
+                              const config = { headers: { Authorization: `Bearer ${user.token}` } };
+                              await axios.delete(`${API_BASE}/api/offers/${o._id}`, config);
+                              setOffers(offers.filter(off => off._id !== o._id));
+                            } catch(e) { console.error(e); alert('Error deleting offer'); }
+                          }
+                        }}
+                        className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

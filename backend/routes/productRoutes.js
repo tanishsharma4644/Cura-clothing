@@ -4,22 +4,51 @@ const Product = require('../models/Product');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // @route   GET /api/products
-// @desc    Get all products
+// @desc    Get all products with server-side filtering, sorting, and pagination
 // @access  Public
+// @query   keyword, category, sort (price_asc|price_desc|newest|rating), pageNumber
 router.get('/', async (req, res) => {
   try {
     const pageSize = 12;
     const page = Number(req.query.pageNumber) || 1;
-    const keyword = req.query.keyword
-      ? { name: { $regex: req.query.keyword, $options: 'i' } }
-      : {};
 
-    const count = await Product.countDocuments({ ...keyword });
-    const products = await Product.find({ ...keyword })
+    // ── Build Query Filter ────────────────────────────────────────────────────
+    const filter = {};
+
+    // Keyword search on product name
+    if (req.query.keyword) {
+      filter.name = { $regex: req.query.keyword, $options: 'i' };
+    }
+
+    // Server-side category filtering (moved from client-side)
+    if (req.query.category) {
+      if (req.query.category.toLowerCase() === 'new arrivals') {
+        filter.isNewArrival = true;
+      } else {
+        filter.category = { $regex: `^${req.query.category}$`, $options: 'i' };
+      }
+    }
+
+    // ── Build Sort Order ──────────────────────────────────────────────────────
+    let sortOrder = { createdAt: -1 }; // Default: newest first
+    if (req.query.sort === 'price_asc') sortOrder = { price: 1 };
+    if (req.query.sort === 'price_desc') sortOrder = { price: -1 };
+    if (req.query.sort === 'rating') sortOrder = { rating: -1 };
+    if (req.query.sort === 'newest') sortOrder = { createdAt: -1 };
+
+    // ── Execute Query ─────────────────────────────────────────────────────────
+    const count = await Product.countDocuments(filter);
+    const products = await Product.find(filter)
+      .sort(sortOrder)
       .limit(pageSize)
       .skip(pageSize * (page - 1));
 
-    res.json({ products, page, pages: Math.ceil(count / pageSize), total: count });
+    res.json({
+      products,
+      page,
+      pages: Math.ceil(count / pageSize),
+      total: count,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }

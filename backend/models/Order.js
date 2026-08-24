@@ -9,6 +9,8 @@ const orderSchema = new mongoose.Schema({
       image: { type: String, required: true },
       price: { type: Number, required: true },
       product: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Product' },
+      selectedSize: { type: String },
+      selectedColor: { type: String },
     }
   ],
   shippingAddress: {
@@ -24,6 +26,14 @@ const orderSchema = new mongoose.Schema({
   paidAt: { type: Date },
   isDelivered: { type: Boolean, required: true, default: false },
   deliveredAt: { type: Date },
+  trackingNumber: { type: String },
+  courierPartner: { type: String, default: 'Delhivery Express' },
+  estimatedDelivery: { type: Date },
+  orderStatus: {
+    type: String,
+    enum: ['Placed', 'Processing', 'Dispatched', 'Out for Delivery', 'Delivered', 'Cancelled'],
+    default: 'Placed'
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

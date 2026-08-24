@@ -3,12 +3,22 @@ const router = express.Router();
 const Offer = require('../models/Offer');
 const { protect, admin } = require('../middleware/authMiddleware');
 
+const DEFAULT_OFFERS = [
+  { type: 'promocode', title: 'Welcome 10% Off', code: 'FIRST10', discountPercentage: 10, minItems: 1, isActive: true },
+  { type: 'promocode', title: 'CURA Luxury 20% Off', code: 'CURA20', discountPercentage: 20, minItems: 1, isActive: true },
+  { type: 'promocode', title: 'VIP Special 15% Off', code: 'WELCOME15', discountPercentage: 15, minItems: 1, isActive: true },
+  { type: 'automatic', title: 'Buy 3+ Get 15% Off', code: '', discountPercentage: 15, minItems: 3, isActive: true }
+];
+
 // @route   GET /api/offers
-// @desc    Get all offers (Active for public, all for admin)
+// @desc    Get all offers (Auto-seeds defaults if empty)
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const offers = await Offer.find({});
+    let offers = await Offer.find({});
+    if (offers.length === 0) {
+      offers = await Offer.insertMany(DEFAULT_OFFERS);
+    }
     res.json(offers);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -75,12 +85,22 @@ router.delete('/:id', protect, admin, async (req, res) => {
 router.post('/apply', async (req, res) => {
   try {
     const { code } = req.body;
-    const offer = await Offer.findOne({ code: code, type: 'promocode', isActive: true });
+    const cleanCode = (code || '').trim().toUpperCase();
     
+    let offer = await Offer.findOne({ code: cleanCode, type: 'promocode', isActive: true });
+    
+    // Fallback for default codes
+    if (!offer) {
+      const foundDefault = DEFAULT_OFFERS.find(o => o.code === cleanCode && o.type === 'promocode');
+      if (foundDefault) {
+        offer = foundDefault;
+      }
+    }
+
     if (offer) {
       res.json(offer);
     } else {
-      res.status(404).json({ message: 'Invalid or expired promo code' });
+      res.status(404).json({ message: 'Invalid or expired promo code. Try FIRST10, CURA20, or WELCOME15!' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
