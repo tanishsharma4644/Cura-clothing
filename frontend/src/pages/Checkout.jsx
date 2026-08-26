@@ -24,7 +24,7 @@ const CheckoutForm = () => {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [postalCode, setPostalCode] = useState('');
-  const [country, setCountry] = useState('USA');
+  const [country, setCountry] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState(null);
 
