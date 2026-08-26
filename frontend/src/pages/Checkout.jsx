@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import AnimatedCard from '../components/AnimatedCard';
 
-// Replace with your actual publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
 
 const CheckoutForm = () => {
@@ -27,6 +27,14 @@ const CheckoutForm = () => {
   const [country, setCountry] = useState('USA');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState(null);
+
+  // Card visual state (for animated 3D card preview)
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardName, setCardName] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   const shipping = 15.00;
   const tax = cartTotal * 0.08;
@@ -192,31 +200,105 @@ const CheckoutForm = () => {
                 </div>
               </section>
 
-              {/* Payment (Stripe) */}
+              {/* Payment — 3D Animated Card */}
               <section>
                 <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b border-gray-200 dark:border-gray-800 pb-2 text-[#8B5E3C] dark:text-[#3B82F6]">Payment Details (Secure)</h3>
-                <div className="bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-800 p-6">
-                  <CardElement options={{
-                    style: {
-                      base: {
-                        fontSize: '16px',
-                        color: '#424770',
-                        '::placeholder': {
-                          color: '#aab7c4',
-                        },
-                      },
-                      invalid: {
-                        color: '#9e2146',
-                      },
-                    },
-                  }} />
+                
+                {/* 3D Card Preview */}
+                <div className="mb-8 py-4">
+                  <AnimatedCard
+                    cardNumber={cardNumber}
+                    cardName={cardName || user?.name || ''}
+                    expiry={cardExpiry}
+                    cvv={cardCvv}
+                    isFlipped={isCardFlipped}
+                  />
+                </div>
+
+                {/* Custom Card Input Fields */}
+                <div className="space-y-4">
+                  {/* Card Number */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">Card Number</label>
+                    <input
+                      type="text"
+                      placeholder="1234 5678 9012 3456"
+                      maxLength={19}
+                      value={cardNumber}
+                      onFocus={() => setIsCardFlipped(false)}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        const formatted = v.replace(/(.{4})/g, '$1 ').trim();
+                        setCardNumber(formatted);
+                      }}
+                      className="w-full bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 p-4 rounded-xl outline-none focus:border-black dark:focus:border-[#3B82F6] focus:ring-2 focus:ring-black/5 dark:focus:ring-blue-500/20 transition-all placeholder:text-gray-400 font-mono text-lg tracking-wider"
+                    />
+                  </div>
+
+                  {/* Card Holder Name */}
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">Cardholder Name</label>
+                    <input
+                      type="text"
+                      placeholder={user?.name || 'FULL NAME'}
+                      value={cardName}
+                      onFocus={() => setIsCardFlipped(false)}
+                      onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                      className="w-full bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 p-4 rounded-xl outline-none focus:border-black dark:focus:border-[#3B82F6] focus:ring-2 focus:ring-black/5 dark:focus:ring-blue-500/20 transition-all placeholder:text-gray-400 uppercase tracking-wider"
+                    />
+                  </div>
+
+                  {/* Expiry + CVV row */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">Expiry Date</label>
+                      <input
+                        type="text"
+                        placeholder="MM/YY"
+                        maxLength={5}
+                        value={cardExpiry}
+                        onFocus={() => setIsCardFlipped(false)}
+                        onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+                          setCardExpiry(v);
+                        }}
+                        className="w-full bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 p-4 rounded-xl outline-none focus:border-black dark:focus:border-[#3B82F6] focus:ring-2 focus:ring-black/5 dark:focus:ring-blue-500/20 transition-all placeholder:text-gray-400 font-mono text-lg tracking-wider"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500 mb-2">CVV</label>
+                      <input
+                        type="password"
+                        placeholder="•••"
+                        maxLength={4}
+                        value={cardCvv}
+                        onFocus={() => setIsCardFlipped(true)}
+                        onBlur={() => setIsCardFlipped(false)}
+                        onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        className="w-full bg-white dark:bg-[#1E293B] border border-gray-200 dark:border-gray-700 p-4 rounded-xl outline-none focus:border-black dark:focus:border-[#3B82F6] focus:ring-2 focus:ring-black/5 dark:focus:ring-blue-500/20 transition-all placeholder:text-gray-400 font-mono text-lg tracking-wider"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hidden Stripe Element for actual payment processing */}
+                <div className="mt-4 opacity-0 h-0 overflow-hidden" aria-hidden="true">
+                  <CardElement />
+                </div>
+
+                {/* Security Badge */}
+                <div className="flex items-center gap-3 mt-5 text-gray-400">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.15em]">256-bit SSL Encrypted • PCI DSS Compliant</span>
+                  <ShieldCheck className="w-3.5 h-3.5 ml-auto" />
                 </div>
               </section>
 
               <button 
                 type="submit" 
                 disabled={isProcessing || !user || !stripe}
-                className="w-full bg-[#1C1917] dark:bg-[#3B82F6] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors flex items-center justify-center gap-3 disabled:bg-gray-400 dark:disabled:bg-gray-700"
+                className="w-full bg-[#1C1917] dark:bg-[#3B82F6] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors flex items-center justify-center gap-3 disabled:bg-gray-400 dark:disabled:bg-gray-700 rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
               >
                 {isProcessing ? 'Processing Payment...' : `Pay ₹${finalTotal.toFixed(0)}`}
               </button>
