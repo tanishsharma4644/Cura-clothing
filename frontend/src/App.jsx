@@ -33,7 +33,7 @@ function ScrollToTop() {
 function App() {
   return (
     <WishlistProvider>
-      <div className="font-sans selection:bg-black selection:text-white">
+      <div className="font-sans selection:bg-black selection:text-white cursor-default">
         <ScrollToTop />
         <Navbar />
         <Routes>
