@@ -21,7 +21,7 @@
 
 /* Global Cursor Reset to prevent text cursor (I-beam) on static elements */
 *, *::before, *::after {
-  cursor: default;
+  cursor: default !important;
 }
 
 /* Standard Inputs & Editable fields should show text cursor */
