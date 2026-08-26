@@ -158,7 +158,7 @@ const Navbar = () => {
                             <img src={p.img} alt={p.name} className="w-12 h-12 rounded-md object-cover bg-gray-100" />
                             <div>
                               <p className="text-sm font-bold">{p.name}</p>
-                              <p className="text-xs text-gray-500">${p.price}</p>
+                              <p className="text-xs text-gray-500">₹{p.price}</p>
                             </div>
                           </div>
                         ))}

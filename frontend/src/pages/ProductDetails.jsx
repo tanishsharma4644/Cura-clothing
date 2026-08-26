@@ -117,7 +117,7 @@ const ProductDetails = () => {
             <span className="text-sm font-black uppercase tracking-widest text-gray-500 mb-2">{product.category}</span>
             <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase mb-4 leading-tight">{product.name}</h1>
             <div className="flex items-center gap-4 mb-6">
-              <span className="text-2xl font-bold">${product.price}</span>
+              <span className="text-2xl font-bold">₹{product.price}</span>
               <div className="flex items-center gap-1 text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                 <Star className="w-4 h-4 fill-black text-black" /> {product.rating ? product.rating.toFixed(1) : 'No Ratings'} ({product.numReviews} Reviews)
               </div>

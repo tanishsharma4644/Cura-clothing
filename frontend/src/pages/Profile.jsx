@@ -243,7 +243,7 @@ const Profile = () => {
 
                         <div className="flex flex-wrap items-center gap-3">
                           <OrderStatusBadge isPaid={order.isPaid} isDelivered={order.isDelivered} />
-                          <span className="font-bold text-[#1C1917] dark:text-white">${order.totalPrice.toFixed(2)}</span>
+                          <span className="font-bold text-[#1C1917] dark:text-white">₹{order.totalPrice.toFixed(0)}</span>
                           <span className="text-xs text-gray-400 uppercase tracking-wider hidden sm:block">{order.paymentMethod}</span>
                         </div>
                       </div>

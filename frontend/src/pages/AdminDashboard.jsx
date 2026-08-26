@@ -398,7 +398,7 @@ const AdminDashboard = () => {
             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Revenue</h3>
             <CreditCard size={18} className="text-gray-400" />
           </div>
-          <p className="text-3xl font-serif dark:text-white">${orders.reduce((acc, order) => acc + order.totalPrice, 0).toFixed(2)}</p>
+          <p className="text-3xl font-serif dark:text-white">₹{orders.reduce((acc, order) => acc + order.totalPrice, 0).toFixed(0)}</p>
         </div>
         <div className="bg-white dark:bg-[#1E293B] p-6 border border-gray-100 dark:border-gray-800 shadow-sm rounded-xl">
           <div className="flex items-center justify-between mb-4">
@@ -481,7 +481,7 @@ const AdminDashboard = () => {
                     <img src={p.imageUrl} alt={p.name} className="w-12 h-12 object-cover rounded-md border border-gray-200 dark:border-gray-700" />
                     <span className="dark:text-white font-bold">{p.name}</span>
                   </td>
-                  <td className="px-6 py-4 font-bold dark:text-white">${p.price.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold dark:text-white">₹{p.price.toFixed(0)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${p.countInStock > 5 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {p.countInStock} left
@@ -544,7 +544,7 @@ const AdminDashboard = () => {
                   <td className="px-6 py-4 font-mono text-xs">{o._id}</td>
                   <td className="px-6 py-4 dark:text-white font-bold">{o.user?.name || 'Unknown'}</td>
                   <td className="px-6 py-4">{new Date(o.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 font-bold dark:text-white">${o.totalPrice.toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold dark:text-white">₹{o.totalPrice.toFixed(0)}</td>
                   <td className="px-6 py-4">
                     {o.isDelivered ? (
                       <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Delivered</span>
@@ -964,9 +964,9 @@ const AdminDashboard = () => {
                     <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                     <div className="flex-1">
                       <p className="text-sm font-bold dark:text-white">{item.name}</p>
-                      <p className="text-xs text-gray-500">Qty: {item.qty} x ${item.price}</p>
+                      <p className="text-xs text-gray-500">Qty: {item.qty} x ₹{item.price}</p>
                     </div>
-                    <p className="font-bold dark:text-white">${(item.qty * item.price).toFixed(2)}</p>
+                    <p className="font-bold dark:text-white">₹{(item.qty * item.price).toFixed(0)}</p>
                   </div>
                 ))}
               </div>
@@ -981,7 +981,7 @@ const AdminDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold uppercase text-gray-500">Total Price</p>
-                <p className="text-2xl font-serif dark:text-white">${selectedOrder.totalPrice.toFixed(2)}</p>
+                <p className="text-2xl font-serif dark:text-white">₹{selectedOrder.totalPrice.toFixed(0)}</p>
               </div>
             </div>
 

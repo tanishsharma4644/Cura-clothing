@@ -99,7 +99,7 @@ const CheckoutForm = () => {
 
         let createdOrderRes;
         try {
-          createdOrderRes = await axios.post('http://localhost:5001/api/orders', orderData, config);
+          createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
         } catch (e) {
           createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
         }
@@ -218,7 +218,7 @@ const CheckoutForm = () => {
                 disabled={isProcessing || !user || !stripe}
                 className="w-full bg-[#1C1917] dark:bg-[#3B82F6] text-white py-5 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#8B5E3C] dark:hover:bg-[#2563EB] transition-colors flex items-center justify-center gap-3 disabled:bg-gray-400 dark:disabled:bg-gray-700"
               >
-                {isProcessing ? 'Processing Payment...' : `Pay $${finalTotal.toFixed(2)}`}
+                {isProcessing ? 'Processing Payment...' : `Pay ₹${finalTotal.toFixed(0)}`}
               </button>
 
             </form>
@@ -244,7 +244,7 @@ const CheckoutForm = () => {
                     <div className="flex flex-col flex-grow">
                       <div className="flex justify-between items-start">
                         <h4 className="font-bold text-xs uppercase tracking-wider pr-4">{item.product.name}</h4>
-                        <span className="font-bold text-sm">${(item.product.price * item.quantity).toFixed(2)}</span>
+                        <span className="font-bold text-sm">₹{(item.product.price * item.quantity).toFixed(0)}</span>
                       </div>
                       <p className="text-gray-500 text-xs mt-1 uppercase tracking-widest">
                         {item.color !== 'Default' && `${item.color}`} 
@@ -259,21 +259,21 @@ const CheckoutForm = () => {
               <div className="border-t border-gray-100 dark:border-gray-800 pt-6 space-y-4 text-sm font-medium text-[#57534E] dark:text-[#94A3B8]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="text-black dark:text-white font-bold">${cartTotal.toFixed(2)}</span>
+                  <span className="text-black dark:text-white font-bold">₹{cartTotal.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="text-black dark:text-white font-bold">${shipping.toFixed(2)}</span>
+                  <span className="text-black dark:text-white font-bold">₹{shipping.toFixed(0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Taxes</span>
-                  <span className="text-black dark:text-white font-bold">${tax.toFixed(2)}</span>
+                  <span className="text-black dark:text-white font-bold">₹{tax.toFixed(0)}</span>
                 </div>
               </div>
 
               <div className="border-t border-black dark:border-white pt-6 mt-6 flex justify-between items-center text-2xl font-serif">
                 <span>Total</span>
-                <span>${finalTotal.toFixed(2)}</span>
+                <span>₹{finalTotal.toFixed(0)}</span>
               </div>
             </div>
           </div>

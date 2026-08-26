@@ -79,7 +79,7 @@ const Wishlist = () => {
                 <Link to={`/product/${item._id}`}>
                   <h3 className="font-bold text-lg dark:text-white mb-2 hover:text-[#8B5E3C] dark:hover:text-[#3B82F6] transition-colors line-clamp-1">{item.name}</h3>
                 </Link>
-                <p className="text-xl font-serif dark:text-gray-300 mb-6">${item.price.toFixed(2)}</p>
+                <p className="text-xl font-serif dark:text-gray-300 mb-6">₹{item.price.toFixed(0)}</p>
                 
                 <button 
                   onClick={() => handleMoveToCart(item)}

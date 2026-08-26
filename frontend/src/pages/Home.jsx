@@ -201,7 +201,7 @@ const ProductCarousel = ({ title, subtitle, products, loading, handleQuickAdd, l
                       <h4 className="product-title font-serif text-xl mb-1 group-hover:text-[#8B5E3C] dark:group-hover:text-[#3B82F6] transition-colors text-[#1C1917] dark:text-white block">{product.name}</h4>
                       <p className="text-xs text-[#78716C] dark:text-[#94A3B8] font-bold tracking-[0.1em] uppercase">{product.category}</p>
                     </div>
-                    <span className="font-serif text-lg text-[#1C1917] dark:text-white">${product.price}</span>
+                    <span className="font-serif text-lg text-[#1C1917] dark:text-white">₹{product.price}</span>
                   </div>
                 </Link>
                 </Tilt3DCard>

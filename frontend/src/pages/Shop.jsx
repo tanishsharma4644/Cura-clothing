@@ -239,7 +239,7 @@ const Shop = () => {
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">${product.price.toFixed(2)}</p>
+                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">₹{product.price.toFixed(0)}</p>
                       {product.rating > 0 && (
                         <div className="flex items-center gap-1 text-amber-400">
                           <Star className="w-3 h-3 fill-current" />
