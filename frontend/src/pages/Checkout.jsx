@@ -10,6 +10,10 @@ import AnimatedCard from '../components/AnimatedCard';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
 
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
+
 const CheckoutForm = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -91,13 +95,7 @@ const CheckoutForm = () => {
         paidAt: new Date()
       };
 
-      let createdOrderRes;
-      try {
-        createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
-      } catch (e) {
-        // Fallback for local testing
-        createdOrderRes = await axios.post('http://localhost:5001/api/orders', orderData, config);
-      }
+      const createdOrderRes = await axios.post(`${API_BASE}/api/orders`, orderData, config);
 
       setCreatedOrderId(createdOrderRes.data._id);
       setIsProcessing(false);

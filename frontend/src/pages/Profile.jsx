@@ -9,7 +9,9 @@ import {
   Truck, AlertCircle, ChevronRight, Edit3, Save, X
 } from 'lucide-react';
 
-const API_BASE = 'https://cura-clothing.onrender.com';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 
 // ── Stat Card Component ────────────────────────────────────────────────────────
 const StatCard = ({ icon: Icon, label, value, color }) => (

@@ -4,7 +4,9 @@ import axios from 'axios';
 import { Search, Package, Truck, CheckCircle2, Clock, MapPin, Copy, Check, Sparkles, MessageCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = 'http://localhost:5001';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 
 const TrackOrder = () => {
   const [searchParams] = useSearchParams();

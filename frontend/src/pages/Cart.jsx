@@ -4,7 +4,9 @@ import { ArrowRight, ShoppingBag, Trash2, Plus, Minus, Tag, Check, X } from 'luc
 import { useCart } from '../context/CartContext';
 import axios from 'axios';
 
-const API_BASE = 'https://cura-clothing.onrender.com';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, cartTotal } = useCart();

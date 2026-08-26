@@ -5,7 +5,9 @@ import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = 'http://localhost:5001';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 
 const VerifyMagicLink = () => {
   const [searchParams] = useSearchParams();

@@ -6,7 +6,9 @@ import { SlidersHorizontal, Heart, ShoppingBag, Star } from 'lucide-react';
 import Loader from '../components/Loader';
 import { useWishlist } from '../context/WishlistContext';
 
-const API_BASE = 'https://cura-clothing.onrender.com';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 const CATEGORIES = ['All', 'Men', 'Women', 'Kids', 'Accessories', 'New Arrivals'];
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },

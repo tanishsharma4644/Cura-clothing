@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import Loader from '../components/Loader';
 
-const API_BASE = 'http://localhost:5001';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5001'
+  : 'https://cura-clothing.onrender.com';
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
