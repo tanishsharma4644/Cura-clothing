@@ -30,7 +30,7 @@ const AdminDashboard = () => {
   const [offers, setOffers] = useState([]);
   const [collections, setCollections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   
   // Navigation State
@@ -74,6 +74,7 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || !user.isAdmin) {
       navigate('/');
       return;
@@ -852,6 +853,10 @@ const AdminDashboard = () => {
     setActiveTab(tab);
     setSidebarOpen(false);
   };
+
+  if (authLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#020617] flex transition-colors duration-500">

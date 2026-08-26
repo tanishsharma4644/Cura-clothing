@@ -58,10 +58,11 @@ const Profile = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const { user, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate('/account');
       return;
@@ -110,6 +111,14 @@ const Profile = () => {
     { id: 'orders', label: 'Order History', icon: Package },
     { id: 'settings', label: 'Account Settings', icon: Settings },
   ];
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0F172A] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1C1917] dark:border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
 
