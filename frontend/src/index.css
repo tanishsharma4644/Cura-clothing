@@ -20,7 +20,7 @@
 }
 
 /* Global Cursor Reset to prevent text cursor (I-beam) on static elements */
-*, html, body {
+*, *::before, *::after {
   cursor: default;
 }
 
@@ -32,19 +32,27 @@ input[type="tel"],
 input[type="number"],
 input[type="search"],
 textarea,
-[contenteditable="true"] {
-  cursor: text;
+[contenteditable="true"],
+input[type="text"] *,
+input[type="email"] *,
+input[type="password"] *,
+textarea * {
+  cursor: text !important;
 }
 
 /* Interactive elements should show pointer */
 a,
 button,
 select,
+option,
 input[type="submit"],
 input[type="button"],
 [role="button"],
 .cursor-pointer,
 a *,
-button * {
-  cursor: pointer;
+button *,
+select *,
+[role="button"] *,
+.cursor-pointer * {
+  cursor: pointer !important;
 }
