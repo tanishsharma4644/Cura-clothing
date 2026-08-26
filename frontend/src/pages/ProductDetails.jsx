@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingBag, Star, ShieldCheck, Truck, ArrowLeft, Check, Tag } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ShoppingBag, Star, ShieldCheck, Truck, ArrowLeft, Check, Tag, Percent, Sparkles, Copy, ChevronDown, Zap, Gift } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -20,11 +20,20 @@ const ProductDetails = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [reviewError, setReviewError] = useState('');
+  const [showAllOffers, setShowAllOffers] = useState(false);
+  const [copiedCode, setCopiedCode] = useState('');
   const { addToCart } = useCart();
   const { user } = useAuth();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   const isFavorited = product ? isInWishlist(product._id) : false;
+
+  const handleCopyCode = (code) => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(''), 2000);
+    });
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -76,6 +85,15 @@ const ProductDetails = () => {
     return <div className="min-h-screen flex items-center justify-center pt-20 text-2xl font-bold">Product not found</div>;
   }
 
+  // Split offers by type for better organization
+  const promoOffers = offers.filter(o => o.type === 'promocode');
+  const specialOffers = offers.filter(o => o.type !== 'promocode');
+  const visibleOffers = showAllOffers ? offers : offers.slice(0, 2);
+  const hasHiddenOffers = offers.length > 2;
+
+  // Find the best (highest discount) offer
+  const bestOffer = offers.length > 0 ? offers.reduce((best, o) => (o.discountPercentage > (best?.discountPercentage || 0) ? o : best), offers[0]) : null;
+
   return (
     <div className="bg-white min-h-screen pt-20 pb-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -107,28 +125,110 @@ const ProductDetails = () => {
 
             <p className="text-gray-600 mb-8 text-lg font-light leading-relaxed">{product.description}</p>
 
-            {/* Active Offers Banner */}
+            {/* ── Premium Offers Section ─────────────────────────────────────────── */}
             {offers.length > 0 && (
-              <div className="mb-10 space-y-3">
-                {offers.map(offer => (
-                  <div key={offer._id} className="bg-green-50 border border-green-200 p-4 rounded-xl flex items-start gap-3">
-                    <Tag className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="mb-10 rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+                {/* Offers Header */}
+                <div className="bg-[#1C1917] px-5 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                      <Percent className="w-3.5 h-3.5 text-white" />
+                    </div>
                     <div>
-                      <h4 className="font-bold text-green-800 uppercase tracking-widest text-xs mb-1">
-                        {offer.type === 'promocode' ? 'Promo Code Available' : 'Special Offer'}
-                      </h4>
-                      <p className="text-green-700 text-sm font-bold">
-                        {offer.title} <span className="font-normal text-green-600">— get {offer.discountPercentage}% OFF!</span>
-                      </p>
-                      {offer.type === 'promocode' && (
-                        <p className="text-xs text-green-600 mt-1 font-mono font-bold">Use code: {offer.code}</p>
-                      )}
-                      {offer.type === 'automatic' && (
-                        <p className="text-xs text-green-600 mt-1">Discount applied automatically at checkout.</p>
-                      )}
+                      <p className="text-white text-xs font-bold uppercase tracking-widest">{offers.length} {offers.length === 1 ? 'Offer' : 'Offers'} Available</p>
                     </div>
                   </div>
-                ))}
+                  {bestOffer && (
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-400 to-orange-500 text-black px-3 py-1 rounded-full animate-pulse">
+                      Up to {bestOffer.discountPercentage}% OFF
+                    </span>
+                  )}
+                </div>
+
+                {/* Offers List */}
+                <div className="divide-y divide-gray-100 bg-gradient-to-b from-amber-50/40 to-white">
+                  <AnimatePresence>
+                    {visibleOffers.map((offer, idx) => (
+                      <motion.div
+                        key={offer._id}
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="px-5 py-4 flex items-center gap-4 hover:bg-amber-50/50 transition-colors group"
+                      >
+                        {/* Offer Icon */}
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          offer.type === 'promocode'
+                            ? 'bg-violet-100 text-violet-600'
+                            : offer.discountPercentage >= 20
+                              ? 'bg-amber-100 text-amber-600'
+                              : 'bg-emerald-100 text-emerald-600'
+                        }`}>
+                          {offer.type === 'promocode' ? (
+                            <Tag className="w-4.5 h-4.5" />
+                          ) : offer.discountPercentage >= 20 ? (
+                            <Zap className="w-4.5 h-4.5" />
+                          ) : (
+                            <Gift className="w-4.5 h-4.5" />
+                          )}
+                        </div>
+
+                        {/* Offer Details */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1C1917] truncate">{offer.title}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {offer.type === 'promocode'
+                              ? `Save ${offer.discountPercentage}% with promo code`
+                              : offer.type === 'automatic'
+                                ? `${offer.discountPercentage}% auto-applied at checkout`
+                                : `Get ${offer.discountPercentage}% off this item`
+                            }
+                          </p>
+                        </div>
+
+                        {/* Promo Code Chip or Badge */}
+                        {offer.type === 'promocode' && offer.code ? (
+                          <button
+                            onClick={() => handleCopyCode(offer.code)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold tracking-wide transition-all ${
+                              copiedCode === offer.code
+                                ? 'bg-emerald-500 border-emerald-500 text-white'
+                                : 'bg-white border-dashed border-gray-300 text-[#1C1917] hover:border-[#1C1917] hover:bg-gray-50 group-hover:border-[#1C1917]'
+                            }`}
+                          >
+                            {copiedCode === offer.code ? (
+                              <>
+                                <Check className="w-3 h-3" />
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-mono">{offer.code}</span>
+                                <Copy className="w-3 h-3 text-gray-400 group-hover:text-[#1C1917]" />
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-xs font-black text-amber-600 bg-amber-100 px-3 py-1.5 rounded-lg uppercase tracking-wider whitespace-nowrap">
+                            {offer.discountPercentage}% Off
+                          </span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* Show More / Show Less */}
+                {hasHiddenOffers && (
+                  <button
+                    onClick={() => setShowAllOffers(!showAllOffers)}
+                    className="w-full py-2.5 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-[#1C1917] hover:bg-gray-50 transition-colors flex items-center justify-center gap-1 border-t border-gray-100"
+                  >
+                    {showAllOffers ? 'Show Less' : `View ${offers.length - 2} More Offer${offers.length - 2 > 1 ? 's' : ''}`}
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showAllOffers ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
               </div>
             )}
 
