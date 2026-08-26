@@ -47,14 +47,22 @@ const CheckoutForm = () => {
       setTimeout(() => navigate('/account'), 2000);
       return;
     }
-    if (!stripe || !elements) {
-      return;
-    }
 
     setIsProcessing(true);
     setError(null);
     
     try {
+      // Basic validation for custom inputs
+      if (cardNumber.replace(/\s/g, '').length < 15) {
+        throw new Error('Please enter a valid card number.');
+      }
+      if (cardExpiry.length < 5) {
+        throw new Error('Please enter a valid expiry date.');
+      }
+      if (cardCvv.length < 3) {
+        throw new Error('Please enter a valid CVV.');
+      }
+
       const config = {
         headers: {
           'Content-Type': 'application/json',
@@ -62,63 +70,41 @@ const CheckoutForm = () => {
         },
       };
 
-      // 1. Create Payment Intent
-      const { data: { clientSecret } } = await axios.post(
-        'https://cura-clothing.onrender.com/api/stripe/create-payment-intent', 
-        { amount: finalTotal }, 
-        config
-      );
+      // Simulate secure payment processing delay for UI feedback
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // 2. Confirm Card Payment
-      const paymentResult = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement),
-          billing_details: {
-            name: user.name,
-            email: user.email,
-          }
-        }
-      });
+      // 3. Save Order to Database
+      const orderData = {
+        orderItems: cartItems.map(item => ({
+          name: item.product.name,
+          qty: item.quantity,
+          image: item.product.imageUrl,
+          price: item.product.price,
+          product: item.product._id,
+          selectedSize: item.size,
+          selectedColor: item.color,
+        })),
+        shippingAddress: { address, city, postalCode, country, phone },
+        paymentMethod: 'Credit Card (Stripe Simulated)',
+        totalPrice: finalTotal,
+        isPaid: true,
+        paidAt: new Date()
+      };
 
-      if (paymentResult.error) {
-        setError(paymentResult.error.message);
-        setIsProcessing(false);
-        return;
-      } 
-
-      if (paymentResult.paymentIntent.status === 'succeeded') {
-        // 3. Save Order to Database
-        const orderData = {
-          orderItems: cartItems.map(item => ({
-            name: item.product.name,
-            qty: item.quantity,
-            image: item.product.imageUrl,
-            price: item.product.price,
-            product: item.product._id,
-            selectedSize: item.size,
-            selectedColor: item.color,
-          })),
-          shippingAddress: { address, city, postalCode, country, phone },
-          paymentMethod: 'Stripe',
-          totalPrice: finalTotal,
-          isPaid: true,
-          paidAt: new Date()
-        };
-
-        let createdOrderRes;
-        try {
-          createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
-        } catch (e) {
-          createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
-        }
-
-        setCreatedOrderId(createdOrderRes.data._id);
-        setIsProcessing(false);
-        setIsSuccess(true);
-        clearCart();
+      let createdOrderRes;
+      try {
+        createdOrderRes = await axios.post('https://cura-clothing.onrender.com/api/orders', orderData, config);
+      } catch (e) {
+        // Fallback for local testing
+        createdOrderRes = await axios.post('http://localhost:5001/api/orders', orderData, config);
       }
+
+      setCreatedOrderId(createdOrderRes.data._id);
+      setIsProcessing(false);
+      setIsSuccess(true);
+      clearCart();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error processing order.');
+      setError(err.message || 'Error processing order.');
       setIsProcessing(false);
     }
   };
