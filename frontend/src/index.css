@@ -18,3 +18,33 @@
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
+
+/* Global Cursor Reset to prevent text cursor (I-beam) on static elements */
+*, html, body {
+  cursor: default;
+}
+
+/* Standard Inputs & Editable fields should show text cursor */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+[contenteditable="true"] {
+  cursor: text;
+}
+
+/* Interactive elements should show pointer */
+a,
+button,
+select,
+input[type="submit"],
+input[type="button"],
+[role="button"],
+.cursor-pointer,
+a *,
+button * {
+  cursor: pointer;
+}

@@ -168,7 +168,7 @@ const Profile = () => {
         {/* ── Stats Row ───────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} color="bg-violet-500" />
-          <StatCard icon={TrendingUp} label="Total Spent" value={`$${totalSpent.toFixed(0)}`} color="bg-emerald-500" />
+          <StatCard icon={TrendingUp} label="Total Spent" value={`₹${totalSpent.toFixed(0)}`} color="bg-emerald-500" />
           <StatCard icon={Truck} label="Delivered" value={deliveredCount} color="bg-blue-500" />
           <StatCard icon={AlertCircle} label="Pending" value={pendingCount} color="bg-amber-500" />
         </div>
@@ -211,45 +211,56 @@ const Profile = () => {
               ) : (
                 <div className="space-y-4">
                   {orders.map((order, i) => (
-                    <motion.div
+                    <Link
+                      to={`/track-order?id=${order._id}`}
                       key={order._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 border border-[#E8E6E1] dark:border-white/10 shadow-sm hover:shadow-md transition-shadow"
+                      className="block group"
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          {/* Product Thumbnails */}
-                          <div className="flex -space-x-3">
-                            {order.orderItems.slice(0, 3).map((item, idx) => (
-                              <div key={idx} className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white dark:border-[#1E293B] bg-gray-100 dark:bg-gray-800 flex-shrink-0">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200'; }} />
-                              </div>
-                            ))}
-                            {order.orderItems.length > 3 && (
-                              <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-[#1E293B] flex items-center justify-center text-xs font-bold text-gray-500">
-                                +{order.orderItems.length - 3}
-                              </div>
-                            )}
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 border border-[#E8E6E1] dark:border-white/10 shadow-sm hover:shadow-md hover:border-[#8B5E3C] dark:hover:border-[#3B82F6] transition-all duration-300 cursor-pointer"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            {/* Product Thumbnails */}
+                            <div className="flex -space-x-3">
+                              {order.orderItems.slice(0, 3).map((item, idx) => (
+                                <div key={idx} className="w-12 h-12 rounded-xl overflow-hidden border-2 border-white dark:border-[#1E293B] bg-gray-100 dark:bg-gray-800 flex-shrink-0">
+                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200'; }} />
+                                </div>
+                              ))}
+                              {order.orderItems.length > 3 && (
+                                <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-white dark:border-[#1E293B] flex items-center justify-center text-xs font-bold text-gray-500">
+                                  +{order.orderItems.length - 3}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-mono text-gray-400 uppercase tracking-wider mb-0.5">
+                                Order ID: #{order._id}
+                              </p>
+                              <p className="font-bold text-[#1C1917] dark:text-white text-sm">
+                                {order.orderItems.length} item{order.orderItems.length !== 1 ? 's' : ''}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-[#1C1917] dark:text-white text-sm">
-                              {order.orderItems.length} item{order.orderItems.length !== 1 ? 's' : ''}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              {new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </p>
-                          </div>
-                        </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
-                          <OrderStatusBadge isPaid={order.isPaid} isDelivered={order.isDelivered} />
-                          <span className="font-bold text-[#1C1917] dark:text-white">₹{order.totalPrice.toFixed(0)}</span>
-                          <span className="text-xs text-gray-400 uppercase tracking-wider hidden sm:block">{order.paymentMethod}</span>
+                          <div className="flex flex-wrap items-center gap-4">
+                            <OrderStatusBadge isPaid={order.isPaid} isDelivered={order.isDelivered} />
+                            <span className="font-bold text-[#1C1917] dark:text-white">₹{order.totalPrice.toFixed(0)}</span>
+                            <span className="text-xs text-gray-400 uppercase tracking-wider hidden sm:block">{order.paymentMethod}</span>
+                            <span className="text-xs font-bold text-[#8B5E3C] dark:text-[#3B82F6] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                              Track Details <ChevronRight className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </Link>
                   ))}
                 </div>
               )}
